@@ -181,11 +181,11 @@ SnapTranslator.dict.cs = {
     'language_name':
         'Česky', // the name as it should appear in the language menu
     'language_translator':
-        'Michal Moc, Jan Tomsa', // your name for the Translators tab
+        'Michal Moc', // your name for the Translators tab
     'translator_e-mail':
-        'info@iguru.eu, jan.tomsa.1976@gmail.com', // optional
+        'info@iguru.eu', // optional
     'last_changed':
-        '2015-11-16', // this, too, will appear in the Translators tab
+        '2013-03-011', // this, too, will appear in the Translators tab
 
     // GUI
     // control bar:
@@ -245,8 +245,6 @@ SnapTranslator.dict.cs = {
     // new sprite button:
     'add a new sprite':
         'přidat nový sprite',
-    'add a new Turtle sprite':
-        'přidat nový sprite želvy',
 
     // tab help
     'costumes tab help':
@@ -694,7 +692,7 @@ SnapTranslator.dict.cs = {
         'Knihovny...',
     'Import library':
         'Importovat knihovnu',
-        
+
 	  'Select a costume from the media library':
 		    'Vyberte kostým z knihovny médií',
     'Select a sound from the media library':
@@ -770,7 +768,7 @@ SnapTranslator.dict.cs = {
         'Heslo musí být dlouhé\nalespoň šest znaků.',
     'passwords do\nnot match':
         'Hesla se neshodují.',
-                        
+
     // settings menu
     'Language...':
         'Jazyk...',
@@ -889,10 +887,18 @@ SnapTranslator.dict.cs = {
         'proměnné:',
     'Input Names:':
         'Proměnné:',
+    'input list:':
+        'Seznamy:',
 
     // context menus:
     'help':
         'nápověda',
+
+    // palette:
+    'hide primitives':
+        'Skrýt základní typy',
+    'show primitives':
+        'Zobrazit základní typy',
 
     // blocks:
     'help...':
@@ -1196,6 +1202,8 @@ SnapTranslator.dict.cs = {
     // costumes
     'Turtle':
         'želva',
+    'Empty':
+        'Prázdný',
 
     // graphical effects
     'brightness':
@@ -1323,6 +1331,16 @@ SnapTranslator.dict.cs = {
         'ln',
     'e^':
         'e^',
+
+    // delimiters
+    'whitespace':
+        'Mezera',
+    'line':
+        'Nový řádek (LF)',
+    'tab':
+        'Tabulátor',
+    'cr':
+        'Nová řádek (CR)',
 
     // data types
     'number':
