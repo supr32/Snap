@@ -9,7 +9,7 @@
     written by Jens Mönig
     jens@moenig.org
 
-    Copyright (C) 2013 by Jens Mönig
+    Copyright (C) 2014 by Jens Mönig
 
     This file is part of Snap!.
 
@@ -83,7 +83,7 @@ ArgLabelMorph, localize, XML_Element, hex_sha512*/
 
 // Global stuff ////////////////////////////////////////////////////////
 
-modules.threads = '2013-October-17';
+modules.threads = '2014-Jun-05';
 
 var ThreadManager;
 var Process;
@@ -98,15 +98,24 @@ function snapEquals(a, b) {
         }
         return false;
     }
-    var x = parseFloat(a),
-        y = parseFloat(b);
-    if (isNaN(x) || isNaN(y)) {
+
+    var x = +a,
+        y = +b,
+        specials = [true, false, ''];
+
+    // check for special values before coercing to numbers
+    if (isNaN(x) || isNaN(y) ||
+            [a, b].some(function (any) {return contains(specials, any) ||
+                  (isString(any) && (any.indexOf(' ') > -1)); })) {
         x = a;
         y = b;
     }
+
+    // handle text comparision case-insensitive.
     if (isString(x) && isString(y)) {
         return x.toLowerCase() === y.toLowerCase();
     }
+
     return x === y;
 }
 
@@ -142,15 +151,19 @@ ThreadManager.prototype.startProcess = function (block, isThreadSafe) {
     return newProc;
 };
 
-ThreadManager.prototype.stopAll = function () {
+ThreadManager.prototype.stopAll = function (excpt) {
+    // excpt is optional
     this.processes.forEach(function (proc) {
-        proc.stop();
+        if (proc !== excpt) {
+            proc.stop();
+        }
     });
 };
 
-ThreadManager.prototype.stopAllForReceiver = function (rcvr) {
+ThreadManager.prototype.stopAllForReceiver = function (rcvr, excpt) {
+    // excpt is optional
     this.processes.forEach(function (proc) {
-        if (proc.homeContext.receiver === rcvr) {
+        if (proc.homeContext.receiver === rcvr && proc !== excpt) {
             proc.stop();
             if (rcvr.isClone) {
                 proc.isDead = true;
@@ -784,7 +797,7 @@ Process.prototype.evaluate = function (
         // assign formal parameters
         for (i = 0; i < context.inputs.length; i += 1) {
             value = 0;
-            if (parms[i]) {
+            if (!isNil(parms[i])) {
                 value = parms[i];
             }
             outer.variables.addVar(context.inputs[i], value);
@@ -853,7 +866,7 @@ Process.prototype.fork = function (context, args) {
         // assign formal parameters
         for (i = 0; i < context.inputs.length; i += 1) {
             value = 0;
-            if (parms[i]) {
+            if (!isNil(parms[i])) {
                 value = parms[i];
             }
             outer.variables.addVar(context.inputs[i], value);
@@ -1013,7 +1026,7 @@ Process.prototype.evaluateCustomBlock = function () {
         // assign formal parameters
         for (i = 0; i < context.inputs.length; i += 1) {
             value = 0;
-            if (parms[i]) {
+            if (!isNil(parms[i])) {
                 value = parms[i];
             }
             outer.variables.addVar(context.inputs[i], value);
@@ -1359,6 +1372,44 @@ Process.prototype.doStopAll = function () {
     }
 };
 
+Process.prototype.doStopThis = function (choice) {
+    switch (this.inputOption(choice)) {
+    case 'all':
+        this.doStopAll();
+        break;
+    case 'this script':
+        this.doStop();
+        break;
+    case 'this block':
+        this.doStopBlock();
+        break;
+    default:
+        nop();
+    }
+};
+
+Process.prototype.doStopOthers = function (choice) {
+    var stage;
+    if (this.homeContext.receiver) {
+        stage = this.homeContext.receiver.parentThatIsA(StageMorph);
+        if (stage) {
+            switch (this.inputOption(choice)) {
+            case 'all but this script':
+                stage.threads.stopAll(this);
+                break;
+            case 'other scripts in sprite':
+                stage.threads.stopAllForReceiver(
+                    this.homeContext.receiver,
+                    this
+                );
+                break;
+            default:
+                nop();
+            }
+        }
+    }
+};
+
 Process.prototype.doWarp = function (body) {
     // execute my contents block atomically (more or less)
     var outer = this.context.outerContext, // for tail call elimination
@@ -1431,10 +1482,10 @@ Process.prototype.doSetFastTracking = function (bool) {
     if (this.homeContext.receiver) {
         ide = this.homeContext.receiver.parentThatIsA(IDE_Morph);
         if (ide) {
-            if (ide.stage.isFastTracked) {
-                ide.stopFastTracking();
-            } else {
+            if (bool) {
                 ide.startFastTracking();
+            } else {
+                ide.stopFastTracking();
             }
         }
     }
@@ -1592,15 +1643,15 @@ Process.prototype.doGlide = function (secs, endX, endY) {
     if (!this.context.startTime) {
         this.context.startTime = Date.now();
         this.context.startValue = new Point(
-            this.homeContext.receiver.xPosition(),
-            this.homeContext.receiver.yPosition()
+            this.blockReceiver().xPosition(),
+            this.blockReceiver().yPosition()
         );
     }
     if ((Date.now() - this.context.startTime) >= (secs * 1000)) {
-        this.homeContext.receiver.gotoXY(endX, endY);
+        this.blockReceiver().gotoXY(endX, endY);
         return null;
     }
-    this.homeContext.receiver.glide(
+    this.blockReceiver().glide(
         secs * 1000,
         endX,
         endY,
@@ -1615,10 +1666,10 @@ Process.prototype.doGlide = function (secs, endX, endY) {
 Process.prototype.doSayFor = function (data, secs) {
     if (!this.context.startTime) {
         this.context.startTime = Date.now();
-        this.homeContext.receiver.bubble(data);
+        this.blockReceiver().bubble(data);
     }
     if ((Date.now() - this.context.startTime) >= (secs * 1000)) {
-        this.homeContext.receiver.stopTalking();
+        this.blockReceiver().stopTalking();
         return null;
     }
     this.pushContext('doYield');
@@ -1628,14 +1679,19 @@ Process.prototype.doSayFor = function (data, secs) {
 Process.prototype.doThinkFor = function (data, secs) {
     if (!this.context.startTime) {
         this.context.startTime = Date.now();
-        this.homeContext.receiver.doThink(data);
+        this.blockReceiver().doThink(data);
     }
     if ((Date.now() - this.context.startTime) >= (secs * 1000)) {
-        this.homeContext.receiver.stopTalking();
+        this.blockReceiver().stopTalking();
         return null;
     }
     this.pushContext('doYield');
     this.pushContext();
+};
+
+Process.prototype.blockReceiver = function () {
+    return this.context ? this.context.receiver || this.homeContext.receiver
+            : this.homeContext.receiver;
 };
 
 // Process sound primitives (interpolated)
@@ -1672,7 +1728,7 @@ Process.prototype.doStopAllSounds = function () {
 
 Process.prototype.doAsk = function (data) {
     var stage = this.homeContext.receiver.parentThatIsA(StageMorph),
-        isStage = this.homeContext.receiver instanceof StageMorph,
+        isStage = this.blockReceiver() instanceof StageMorph,
         activePrompter;
 
     if (!this.prompter) {
@@ -1682,7 +1738,7 @@ Process.prototype.doAsk = function (data) {
         );
         if (!activePrompter) {
             if (!isStage) {
-                this.homeContext.receiver.bubble(data, false, true);
+                this.blockReceiver().bubble(data, false, true);
             }
             this.prompter = new StagePrompterMorph(isStage ? data : null);
             if (stage.scale < 1) {
@@ -1702,7 +1758,7 @@ Process.prototype.doAsk = function (data) {
             stage.lastAnswer = this.prompter.inputField.getValue();
             this.prompter.destroy();
             this.prompter = null;
-            if (!isStage) {this.homeContext.receiver.stopTalking(); }
+            if (!isStage) {this.blockReceiver().stopTalking(); }
             return null;
         }
     }
@@ -1842,30 +1898,30 @@ Process.prototype.reportTypeOf = function (thing) {
 // Process math primtives
 
 Process.prototype.reportSum = function (a, b) {
-    return parseFloat(a) + parseFloat(b);
+    return +a + (+b);
 };
 
 Process.prototype.reportDifference = function (a, b) {
-    return parseFloat(a) - parseFloat(b);
+    return +a - +b;
 };
 
 Process.prototype.reportProduct = function (a, b) {
-    return parseFloat(a) * parseFloat(b);
+    return +a * +b;
 };
 
 Process.prototype.reportQuotient = function (a, b) {
-    return parseFloat(a) / parseFloat(b);
+    return +a / +b;
 };
 
 Process.prototype.reportModulus = function (a, b) {
-    var x = parseFloat(a),
-        y = parseFloat(b);
+    var x = +a,
+        y = +b;
     return ((x % y) + y) % y;
 };
 
 Process.prototype.reportRandom = function (min, max) {
-    var floor = parseFloat(min),
-        ceil = parseFloat(max);
+    var floor = +min,
+        ceil = +max;
     if ((floor % 1 !== 0) || (ceil % 1 !== 0)) {
         return Math.random() * (ceil - floor) + floor;
     }
@@ -1873,8 +1929,8 @@ Process.prototype.reportRandom = function (min, max) {
 };
 
 Process.prototype.reportLessThan = function (a, b) {
-    var x = parseFloat(a),
-        y = parseFloat(b);
+    var x = +a,
+        y = +b;
     if (isNaN(x) || isNaN(y)) {
         x = a;
         y = b;
@@ -1887,8 +1943,8 @@ Process.prototype.reportNot = function (bool) {
 };
 
 Process.prototype.reportGreaterThan = function (a, b) {
-    var x = parseFloat(a),
-        y = parseFloat(b);
+    var x = +a,
+        y = +b;
     if (isNaN(x) || isNaN(y)) {
         x = a;
         y = b;
@@ -1942,11 +1998,11 @@ Process.prototype.reportFalse = function () {
 };
 
 Process.prototype.reportRound = function (n) {
-    return Math.round(parseFloat(n));
+    return Math.round(+n);
 };
 
 Process.prototype.reportMonadic = function (fname, n) {
-    var x = parseFloat(n),
+    var x = +n,
         result = 0;
 
     switch (this.inputOption(fname)) {
@@ -1990,6 +2046,7 @@ Process.prototype.reportMonadic = function (fname, n) {
         result = 0;
         break;
     default:
+        nop();
     }
     return result;
 };
@@ -2021,6 +2078,7 @@ Process.prototype.reportTextFunction = function (fname, string) {
         result = hex_sha512(x);
         break;
     default:
+        nop();
     }
     return result;
 };
@@ -2041,12 +2099,15 @@ Process.prototype.reportJoinWords = function (aList) {
 // Process string ops
 
 Process.prototype.reportLetter = function (idx, string) {
-    var i = parseFloat(idx || 0),
+    var i = +(idx || 0),
         str = (string || '').toString();
     return str[i - 1] || '';
 };
 
 Process.prototype.reportStringSize = function (string) {
+    if (string instanceof List) { // catch a common user error
+        return string.length();
+    }
     var str = (string || '').toString();
     return str.length;
 };
@@ -2057,7 +2118,7 @@ Process.prototype.reportUnicode = function (string) {
 };
 
 Process.prototype.reportUnicodeAsLetter = function (num) {
-    var code = parseFloat(num || 0);
+    var code = +(num || 0);
     return String.fromCharCode(code);
 };
 
@@ -2232,7 +2293,7 @@ Process.prototype.createClone = function (name) {
 // Process sensing primitives
 
 Process.prototype.reportTouchingObject = function (name) {
-    var thisObj = this.homeContext.receiver;
+    var thisObj = this.blockReceiver();
 
     if (thisObj) {
         return this.objectTouchingObject(thisObj, name);
@@ -2328,7 +2389,7 @@ Process.prototype.reportColorIsTouchingColor = function (color1, color2) {
 };
 
 Process.prototype.reportDistanceTo = function (name) {
-    var thisObj = this.homeContext.receiver,
+    var thisObj = this.blockReceiver(),
         thatObj,
         stage,
         rc,
@@ -2351,7 +2412,7 @@ Process.prototype.reportDistanceTo = function (name) {
 };
 
 Process.prototype.reportAttributeOf = function (attribute, name) {
-    var thisObj = this.homeContext.receiver,
+    var thisObj = this.blockReceiver(),
         thatObj,
         stage;
 
@@ -2363,6 +2424,9 @@ Process.prototype.reportAttributeOf = function (attribute, name) {
             thatObj = this.getOtherObject(name, thisObj, stage);
         }
         if (thatObj) {
+            if (attribute instanceof Context) {
+                return this.reportContextFor(attribute, thatObj);
+            }
             if (isString(attribute)) {
                 return thatObj.variables.getVar(attribute);
             }
@@ -2385,6 +2449,18 @@ Process.prototype.reportAttributeOf = function (attribute, name) {
         }
     }
     return '';
+};
+
+Process.prototype.reportContextFor = function (context, otherObj) {
+    // Private - return a copy of the context
+    // and bind it to another receiver
+    var result = copy(context);
+    result.receiver = otherObj;
+    if (result.outerContext) {
+        result.outerContext = copy(result.outerContext);
+        result.outerContext.receiver = otherObj;
+    }
+    return result;
 };
 
 Process.prototype.reportMouseX = function () {
@@ -2458,6 +2534,35 @@ Process.prototype.reportTimer = function () {
         }
     }
     return 0;
+};
+
+// Process Dates and times in Snap
+// Map block options to built-in functions
+var dateMap = {
+    'year' : 'getFullYear',
+    'month' : 'getMonth',
+    'date': 'getDate',
+    'day of week' : 'getDay',
+    'hour' : 'getHours',
+    'minute' : 'getMinutes',
+    'second' : 'getSeconds',
+    'time in milliseconds' : 'getTime'
+};
+
+Process.prototype.reportDate = function (datefn) {
+    var inputFn = this.inputOption(datefn),
+        currDate = new Date(),
+        func = dateMap[inputFn],
+        result = currDate[func]();
+
+    if (!dateMap[inputFn]) { return ''; }
+
+    // Show months as 1-12 and days as 1-7
+    if (inputFn === 'month' || inputFn === 'day of week') {
+        result += 1;
+    }
+
+    return result;
 };
 
 // Process code mapping
@@ -2947,7 +3052,9 @@ VariableFrame.prototype.getVar = function (name, upvars) {
 };
 
 VariableFrame.prototype.addVar = function (name, value) {
-    this.vars[name] = (value === 0 ? 0 : value || null);
+    this.vars[name] = (value === 0 ? 0
+              : value === false ? false
+                       : value === '' ? '' : value || 0);
 };
 
 VariableFrame.prototype.deleteVar = function (name) {
@@ -3001,6 +3108,20 @@ VariableFrame.prototype.allNames = function () {
         }
     }
     return answer;
+};
+
+// Variable /////////////////////////////////////////////////////////////////
+
+function Variable(value) {
+    this.value = value;
+}
+
+Variable.prototype.toString = function () {
+    return 'a Variable [' + this.value + ']';
+};
+
+Variable.prototype.copy = function () {
+    return new Variable(this.value);
 };
 
 // UpvarReference ///////////////////////////////////////////////////////////

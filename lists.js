@@ -7,7 +7,7 @@
     written by Jens Mönig and Brian Harvey
     jens@moenig.org, bh@cs.berkeley.edu
 
-    Copyright (C) 2013 by Jens Mönig and Brian Harvey
+    Copyright (C) 2014 by Jens Mönig and Brian Harvey
 
     This file is part of Snap!.
 
@@ -61,7 +61,7 @@ PushButtonMorph, SyntaxElementMorph, Color, Point, WatcherMorph,
 StringMorph, SpriteMorph, ScrollFrameMorph, CellMorph, ArrowMorph,
 MenuMorph, snapEquals, Morph, isNil, localize, MorphicPreferences*/
 
-modules.lists = '2013-October-08';
+modules.lists = '2014-Jun-04';
 
 var List;
 var ListWatcherMorph;
@@ -209,30 +209,18 @@ List.prototype.at = function (index) {
 };
 
 List.prototype.contains = function (element) {
-    var num = parseFloat(element);
     if (this.isLinked) {
-        if (this.first === element) {
+        if (snapEquals(this.first, element)) {
             return true;
-        }
-        if (!isNaN(num)) {
-            if (parseFloat(this.first) === num) {
-                return true;
-            }
         }
         if (this.rest instanceof List) {
             return this.rest.contains(element);
         }
-        return false;
     }
     // in case I'm arrayed
-    if (contains(this.contents, element)) {
-        return true;
-    }
-    if (!isNaN(num)) {
-        return (contains(this.contents, num))
-            || contains(this.contents, num.toString());
-    }
-    return false;
+    return this.contents.some(function (any) {
+        return snapEquals(any, element);
+    });
 };
 
 // List conversion:
@@ -317,7 +305,7 @@ List.prototype.equalTo = function (other) {
     if (this.length() !== other.length()) {
         return false;
     }
-    for (i = 0; i < this.length(); i += 1) {
+    for (i = 1; i <= this.length(); i += 1) {
         if (!snapEquals(this.at(i), other.at(i))) {
             return false;
         }

@@ -8,7 +8,7 @@
     written by Jens Mönig
     jens@moenig.org
 
-    Copyright (C) 2013 by Jens Mönig
+    Copyright (C) 2014 by Jens Mönig
 
     This file is part of Snap!.
 
@@ -1035,7 +1035,7 @@
 /*global window, HTMLCanvasElement, getMinimumFontHeight, FileReader, Audio,
 FileList, getBlurredShadowSupport*/
 
-var morphicVersion = '2013-October-15';
+var morphicVersion = '2014-May-20';
 var modules = {}; // keep track of additional loaded modules
 var useBlurredShadows = getBlurredShadowSupport(); // check for Chrome-bug
 
@@ -2735,11 +2735,13 @@ Morph.prototype.fullImage = function () {
     this.allChildren().forEach(function (morph) {
         if (morph.isVisible) {
             ctx.globalAlpha = morph.alpha;
-            ctx.drawImage(
-                morph.image,
-                morph.bounds.origin.x - fb.origin.x,
-                morph.bounds.origin.y - fb.origin.y
-            );
+            if (morph.image.width && morph.image.height) {
+                ctx.drawImage(
+                    morph.image,
+                    morph.bounds.origin.x - fb.origin.x,
+                    morph.bounds.origin.y - fb.origin.y
+                );
+            }
         }
     });
     return img;
@@ -3066,7 +3068,7 @@ Morph.prototype.updateReferences = function (dict) {
     */
     var property;
     for (property in this) {
-        if (property.isMorph && dict[property]) {
+        if (this[property] && this[property].isMorph && dict[property]) {
             this[property] = dict[property];
         }
     }
@@ -4581,6 +4583,7 @@ CursorMorph.prototype.processKeyDown = function (event) {
         this.keyDownEventUsed = true;
         break;
     default:
+        nop();
         // this.inspectKeyEvent(event);
     }
     // notify target's parent of key event
@@ -9321,7 +9324,10 @@ HandMorph.prototype.morphAtPointer = function () {
                 m.isVisible &&
                 (m.noticesTransparentClick ||
                     (!m.isTransparentAt(myself.bounds.origin))) &&
-                (!(m instanceof ShadowMorph))) {
+                (!(m instanceof ShadowMorph)) &&
+                m.allParents().every(function (each) {
+                    return each.isVisible;
+                })) {
             result = m;
         }
     });
@@ -10023,13 +10029,14 @@ WorldMorph.prototype.fillPage = function () {
         this.worldCanvas.style.top = "0px";
         pos.y = 0;
     }
-    if (document.body.scrollTop) { // scrolled down b/c of viewport scaling
+    if (document.documentElement.scrollTop) {
+        // scrolled down b/c of viewport scaling
         clientHeight = document.documentElement.clientHeight;
     }
-    if (document.body.scrollLeft) { // scrolled left b/c of viewport scaling
+    if (document.documentElement.scrollLeft) {
+        // scrolled left b/c of viewport scaling
         clientWidth = document.documentElement.clientWidth;
     }
-
     if (this.worldCanvas.width !== clientWidth) {
         this.worldCanvas.width = clientWidth;
         this.setWidth(clientWidth);
@@ -10259,6 +10266,9 @@ WorldMorph.prototype.initEventListeners = function () {
                 if (myself.keyboardReceiver) {
                     myself.keyboardReceiver.processKeyPress(event);
                 }
+                event.preventDefault();
+            }
+            if (event.ctrlKey || event.metaKey) {
                 event.preventDefault();
             }
         },

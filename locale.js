@@ -6,7 +6,7 @@
 
     written by Jens Mönig
 
-    Copyright (C) 2013 by Jens Mönig
+    Copyright (C) 2014 by Jens Mönig
 
     This file is part of Snap!.
 
@@ -42,7 +42,7 @@
 
 /*global modules, contains*/
 
-modules.locale = '2013-October-14';
+modules.locale = '2014-Jun-04';
 
 // Global stuff
 
@@ -149,7 +149,7 @@ SnapTranslator.dict.de = {
     'translator_e-mail':
         'jens@moenig.org',
     'last_changed':
-        '2013-10-04'
+        '2014-06-04'
 };
 
 SnapTranslator.dict.it = {
@@ -209,7 +209,7 @@ SnapTranslator.dict.pt = {
     'translator_e-mail':
         'mmsequeira@gmail.com',
     'last_changed':
-        '2013-10-14'
+        '2014-05-26'
 };
 
 SnapTranslator.dict.cs = {
@@ -253,11 +253,11 @@ SnapTranslator.dict.fr = {
     'language_name':
         'Fran\u00E7ais',
     'language_translator':
-        'Jean-Jacques Valliet - Mark Rafter',
+        'Jean-Jacques Valliet, Mark Rafter, Martin Quinson',
     'translator_e-mail':
         'i.scool@mac.com',
     'last_changed':
-        '2013-09-16'
+        '2014-02-04'
 };
 
 SnapTranslator.dict.si = {
@@ -358,3 +358,39 @@ SnapTranslator.dict.el = {
     'last_changed':
         '2013-09-16'
 };
+
+SnapTranslator.dict.ca = {
+    'language_name':
+        'Català',
+    'language_translator':
+        'Bernat Romagosa Carrasquer',
+    'translator_e-mail':
+        'tibabenfortlapalanca@gmail.com',
+    'last_changed':
+        '2013-11-26'
+};
+
+SnapTranslator.dict.fi = {
+    // meta information
+    'language_name':
+        'suomi',
+    'language_translator':
+        'Jouni K. Sepp\u00e4nen',
+    'translator_e-mail':
+        'jks@iki.fi',
+    'last_changed':
+        '2014-04-18'
+};
+
+SnapTranslator.dict.pt_BR = {
+    // meta information
+    'language_name':
+        'Português do Brasil',
+    'language_translator':
+        'Aldo von Wangenheim',
+    'translator_e-mail':
+        'awangenh@inf.ufsc.br',
+    'last_changed':
+        '2014-04-20'
+};
+
