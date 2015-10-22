@@ -931,6 +931,12 @@ SnapTranslator.dict.cs = {
     // sprites:
     'edit':
         'upravit',
+<<<<<<< HEAD
+    'detach from':
+        'Odpojit od',
+    'detach all parts':
+        'Odpojit vše',
+=======
     'move':
         'přesunout',
     'export...':
