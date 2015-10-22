@@ -438,19 +438,11 @@ SnapTranslator.dict.cs = {
     'broadcast %msg and wait':
         'poslat všem %msg a čekat',
     'Message name':
-<<<<<<< HEAD
-        'jméno zprávy',
-    'message':
-        'zpráva',
-    'any message':
-        'jakákoliv zpráva',
-=======
         'název zprávy',
     'message':
         'zpráva',
     'any message':
         'jakákoli zpráva',
->>>>>>> upstream/master
     'wait %n secs':
         'čekej %n sekund',
     'wait until %b':
@@ -492,11 +484,7 @@ SnapTranslator.dict.cs = {
     'create a clone of %cln':
         'vytvořit klon %cln',
     'myself':
-<<<<<<< HEAD
-        'sebe',
-=======
         'sama sebe',
->>>>>>> upstream/master
     'delete this clone':
         'odstranit klon',
     'all but this script':
@@ -505,8 +493,6 @@ SnapTranslator.dict.cs = {
         'ostatní skripty v tomto objektu',
     'pause all %pause':
         'zastavit všechny %pause',
-
-
     // sensing:
     'touching %col ?':
         'dotýká se %col ?',
@@ -786,9 +772,6 @@ SnapTranslator.dict.cs = {
     'Language...':
         'Jazyk...',
     'Zoom blocks...':
-<<<<<<< HEAD
-        'Zvětšení bloků...',
-=======
         'Velikost bloků...',
     'Stage size...':
         'Velikost scény...',
@@ -798,7 +781,6 @@ SnapTranslator.dict.cs = {
         'Šířka scény',
     'Stage height':
         'Výška scény',
->>>>>>> upstream/master
     'Blurred shadows':
         'Měkké stíny',
     'uncheck to use solid drop\nshadows and highlights':
@@ -950,15 +932,12 @@ SnapTranslator.dict.cs = {
     // sprites:
     'edit':
         'upravit',
-<<<<<<< HEAD
     'detach from':
         'Odpojit od',
     'detach all parts':
         'Odpojit vše',
-=======
     'move':
         'přesunout',
->>>>>>> upstream/master
     'export...':
         'export...',
     'paint a new sprite':
@@ -1033,15 +1012,6 @@ SnapTranslator.dict.cs = {
 
     // zoom blocks
     'Zoom blocks':
-<<<<<<< HEAD
-        'Zvětšení bloků',
-    'build':
-        'postav',
-    'your own':
-        'vlastní',
-    'blocks':
-        'Bloky',
-=======
         'Velikost bloků',
     'build':
         'vytvoř si',
@@ -1049,7 +1019,6 @@ SnapTranslator.dict.cs = {
         'své vlastní',
     'blocks':
         'bloky',
->>>>>>> upstream/master
     'normal (1x)':
         'normální (1x)',
     'demo (1.2x)':
