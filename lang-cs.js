@@ -1,27 +1,27 @@
 /*
 
-	lang-cs.js
+    lang-cs.js
 
-	Czech translation for SNAP!
+    Czech translation for SNAP!
 
-	written by Michal Moc
+    written by Michal Moc
 
-	Copyright (C) 2012 by Michal Moc
+    Copyright (C) 2012 by Michal Moc
 
-	This file is part of Snap!.
+    This file is part of Snap!.
 
-	Snap! is free software: you can redistribute it and/or modify
-	it under the terms of the GNU Affero General Public License as
-	published by the Free Software Foundation, either version 3 of
-	the License, or (at your option) any later version.
+    Snap! is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation, either version 3 of
+    the License, or (at your option) any later version.
 
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU Affero General Public License for more details.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
 
-	You should have received a copy of the GNU Affero General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
@@ -181,11 +181,11 @@ SnapTranslator.dict.cs = {
     'language_name':
         'Česky', // the name as it should appear in the language menu
     'language_translator':
-        'Michal Moc', // your name for the Translators tab
+        'Michal Moc, Jan Tomsa', // your name for the Translators tab
     'translator_e-mail':
-        'info@iguru.eu', // optional
+        'info@iguru.eu, jan.tomsa.1976@gmail.com', // optional
     'last_changed':
-        '2013-03-011', // this, too, will appear in the Translators tab
+        '2015-09-22', // this, too, will appear in the Translators tab
 
     // GUI
     // control bar:
@@ -245,6 +245,8 @@ SnapTranslator.dict.cs = {
     // new sprite button:
     'add a new sprite':
         'přidat nový sprite',
+    'add a new Turtle sprite':
+        'přidat nový sprite želvy',
 
     // tab help
     'costumes tab help':
@@ -362,6 +364,7 @@ SnapTranslator.dict.cs = {
         'jdi do popředí',
     'go back %n layers':
         'jdi do pozadí o %n úrovní',
+
     'development mode \ndebugging primitives:':
         'vývojový mód \nladění primitiv',
     'console log %mult%s':
@@ -692,7 +695,7 @@ SnapTranslator.dict.cs = {
         'Knihovny...',
     'Import library':
         'Importovat knihovnu',
-
+        
 	  'Select a costume from the media library':
 		    'Vyberte kostým z knihovny médií',
     'Select a sound from the media library':
@@ -768,7 +771,7 @@ SnapTranslator.dict.cs = {
         'Heslo musí být dlouhé\nalespoň šest znaků.',
     'passwords do\nnot match':
         'Hesla se neshodují.',
-
+                        
     // settings menu
     'Language...':
         'Jazyk...',
@@ -802,6 +805,8 @@ SnapTranslator.dict.cs = {
         'odškrtnutím bude upřednostňováno nahrazení celé podmínky',
     'Long form input dialog':
         'Velké formuláře',
+    'Plain prototype labels':
+        'Jednoduché popisky prototypů',
     'check to always show slot\ntypes in the input dialog':
         'Zaškrtnutím povolit zobrazování typů slotů ve vstupním dialogu',
     'uncheck to use the input\ndialog in short form':
@@ -931,12 +936,10 @@ SnapTranslator.dict.cs = {
     // sprites:
     'edit':
         'upravit',
-<<<<<<< HEAD
     'detach from':
         'Odpojit od',
     'detach all parts':
         'Odpojit vše',
-=======
     'move':
         'přesunout',
     'export...':
@@ -947,6 +950,11 @@ SnapTranslator.dict.cs = {
       // stage:
     'show all':
         'Zobrazit vše',
+    'pic...':
+        'Exportovat obrázky...',
+    'open a new window\nwith a picture of the stage':
+        'otevře nové okno s obrázkem scény',
+
 
     // scripting area
     'clean up':
@@ -955,6 +963,15 @@ SnapTranslator.dict.cs = {
         'zarovnat skripty vertikálně',
     'add comment':
         'přidat komentář',
+    'undrop':
+        'vrátit zpět',
+    'undo the last\nblock drop\nin this pane':
+        'vrátit poslední vložený blok',
+    'scripts pic...':
+        'obrázek všech skriptů...',
+    'open a new window\nwith a picture of all scripts':
+        'otevřít nové okno\ns obrázkem všech skriptů',
+
     'make a block...':
         'vytvořit blok...',
 
@@ -1212,17 +1229,16 @@ SnapTranslator.dict.cs = {
         'Prázdný',
 
     // graphical effects
-    'brightness':
-        'jas',
     'ghost':
         'duch',
+    'brightness':
+        'jas',
     'negative':
         'negativ',
     'comic':
         'moaré',
     'confetti':
-        'barevnost',
-
+        'konfety',
 
     // keys
     'space':
