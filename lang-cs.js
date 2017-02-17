@@ -1,27 +1,27 @@
 /*
 
-    lang-cs.js
+	lang-cs.js
 
-    Czech translation for SNAP!
+	Czech translation for SNAP!
 
-    written by Michal Moc
+	written by Michal Moc
 
-    Copyright (C) 2012 by Michal Moc
+	Copyright (C) 2012 by Michal Moc
 
-    This file is part of Snap!.
+	This file is part of Snap!.
 
-    Snap! is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
+	Snap! is free software: you can redistribute it and/or modify
+	it under the terms of the GNU Affero General Public License as
+	published by the Free Software Foundation, either version 3 of
+	the License, or (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Affero General Public License for more details.
 
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU Affero General Public License
+	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
@@ -364,7 +364,6 @@ SnapTranslator.dict.cs = {
         'jdi do popředí',
     'go back %n layers':
         'jdi do pozadí o %n úrovní',
-
     'development mode \ndebugging primitives:':
         'vývojový mód \nladění primitiv',
     'console log %mult%s':
@@ -380,15 +379,15 @@ SnapTranslator.dict.cs = {
     'stop all sounds':
         'vypni všechny zvuky',
     'rest for %n beats':
-            'pauza %n dob(y)',
-        'play note %n for %n beats':
-            'zahraj tón %n po %n dob(y)',
-        'change tempo by %n':
-            'změň tempo o %n',
-        'set tempo to %n bpm':
-            'nastav tempo na %n bpm.',
-        'tempo':
-            'tempo',
+        'pauza %n dob(y)',
+    'play note %n for %n beats':
+        'zahraj tón %n po %n dob(y)',
+    'change tempo by %n':
+         'změň tempo o %n',
+    'set tempo to %n bpm':
+         'nastav tempo na %n bpm.',
+    'tempo':
+         'tempo',
 
     // pen:
     'clear':
