@@ -272,7 +272,7 @@ IDE_Morph.prototype.init = function (isAutoFill) {
 IDE_Morph.prototype.openIn = function (world) {
     var hash, myself = this, urlLanguage = null;
 
-    SnapCloud.initSession(
+   /* SnapCloud.initSession(
         function (username) {
             if (username) {
                 myself.source = 'cloud';
@@ -295,11 +295,11 @@ IDE_Morph.prototype.openIn = function (world) {
             }
         }
     );
-
+*/
     this.buildPanes();
     world.add(this);
     world.userMenu = this.userMenu;
-
+/*
     // override SnapCloud's user message with Morphic
     SnapCloud.message = function (string) {
         var m = new MenuMorph(null, string),
@@ -310,7 +310,7 @@ IDE_Morph.prototype.openIn = function (world) {
             clearInterval(intervalHandle);
         }, 2000);
     };
-
+*/
     // prevent non-DialogBoxMorphs from being dropped
     // onto the World in user-mode
     world.reactToDropOf = function (morph) {
@@ -876,7 +876,7 @@ IDE_Morph.prototype.createControlBar = function () {
     settingsButton = button;
     this.controlBar.add(settingsButton);
     this.controlBar.settingsButton = settingsButton; // for menu positioning
-
+/*
     // cloudButton
     button = new PushButtonMorph(
         this,
@@ -899,7 +899,7 @@ IDE_Morph.prototype.createControlBar = function () {
     cloudButton = button;
     this.controlBar.add(cloudButton);
     this.controlBar.cloudButton = cloudButton; // for menu positioning
-
+*/
     this.controlBar.fixLayout = function () {
         x = this.right() - padding;
         [stopButton, pauseButton, startButton].forEach(
@@ -934,11 +934,11 @@ IDE_Morph.prototype.createControlBar = function () {
         settingsButton.setCenter(myself.controlBar.center());
         settingsButton.setLeft(this.left());
 
-        cloudButton.setCenter(myself.controlBar.center());
-        cloudButton.setRight(settingsButton.left() - padding);
+      //  cloudButton.setCenter(myself.controlBar.center());
+      //  cloudButton.setRight(settingsButton.left() - padding);
 
         projectButton.setCenter(myself.controlBar.center());
-        projectButton.setRight(cloudButton.left() - padding);
+        projectButton.setRight(settingsButton.left() - padding);
 
         this.refreshSlider();
         this.updateLabel();
@@ -4764,7 +4764,7 @@ IDE_Morph.prototype.toggleAppMode = function (appMode) {
     var world = this.world(),
         elements = [
             this.logo,
-            this.controlBar.cloudButton,
+           // this.controlBar.cloudButton,
             this.controlBar.projectButton,
             this.controlBar.settingsButton,
             this.controlBar.steppingButton,
@@ -5778,7 +5778,7 @@ ProjectDialogMorph.prototype.buildContents = function () {
         this.srcBar.add(notification);
     }
 
-    this.addSourceButton('cloud', localize('Cloud'), 'cloud');
+   // this.addSourceButton('cloud', localize('Cloud'), 'cloud');
     this.addSourceButton('local', localize('Browser'), 'storage');
     if (this.task === 'open') {
         this.buildFilterField();
