@@ -50,7 +50,7 @@ Cloud.prototype.init = function (url) {
     this.username = null;
 };
 
-SnapCloud = new Cloud('https://cloud.snap.berkeley.edu');
+SnapCloud = new Cloud('http://cloud.snap.local');
 
 // Dictionary handling
 
@@ -373,7 +373,7 @@ Cloud.prototype.saveProject = function (ide, onSuccess, onError) {
                         'The media inside this project exceeds 10 MB.\n' +
                             'Please reduce the size of costumes or sounds.\n',
                         ide.world(),
-                        ide.cloudIcon(null, new Color(180, 0, 0))
+                        ide.cloudadminIcon(null, new Color(180, 0, 0))
                     );
                     throw new Error('Project media exceeds 10 MB size limit');
                 }
