@@ -32,7 +32,7 @@
 /*global modules, SnapSerializer, nop, hex_sha512, DialogBoxMorph, Color,
 normalizeCanvas*/
 
-modules.cloud = '2018-June-15';
+modules.cloud = '2018-November-28';
 
 // Global stuff
 
@@ -61,17 +61,19 @@ Cloud.prototype.defaultDomain = Cloud.prototype.knownDomains['Snap!Cloud'];
 
 Cloud.prototype.determineCloudDomain = function () {
     // We dynamically determine the domain of the cloud server.
-    // Thise allows for easy mirrors and development servers.
+    // This allows for easy mirrors and development servers.
     // The domain is determined by:
-    // 1. <meta name='snap-cloud-domain' domain="X"> in snap.html.
+    // 1. <meta name='snap-cloud-domain' location="X"> in snap.html.
     // 2. The current page's domain
     var currentDomain = window.location.host, // host includes the port.
         metaTag = document.head.querySelector("[name='snap-cloud-domain']"),
-        cloudDomain = this.defaultDomain;
+        cloudDomain = this.defaultDomain,
+        domainMap = this.knownDomains;
 
     if (metaTag) { return metaTag.getAttribute('location'); }
 
-    Object.values(this.knownDomains).some(function (server) {
+    Object.keys(domainMap).some(function (name) {
+        var server = domainMap[name];
         if (Cloud.isMatchingDomain(currentDomain, server)) {
             cloudDomain = server;
             return true;
@@ -239,6 +241,10 @@ Cloud.prototype.withCredentialsRequest = function (
 
 Cloud.prototype.initSession = function (onSuccess) {
     var myself = this;
+    if (location.protocol === 'file:') {
+        // disabled for now (jens)
+        return;
+    }
     this.request(
         'POST',
         '/init',
