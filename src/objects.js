@@ -83,7 +83,7 @@ BlockEditorMorph, BlockDialogMorph, PrototypeHatBlockMorph, localize,
 TableMorph, TableFrameMorph, normalizeCanvas, BooleanSlotMorph, HandleMorph,
 AlignmentMorph, Process, XML_Element, VectorPaintEditorMorph*/
 
-modules.objects = '2018-July-06';
+modules.objects = '2018-November-28';
 
 var SpriteMorph;
 var StageMorph;
@@ -3534,9 +3534,14 @@ SpriteMorph.prototype.getHue = function () {
 SpriteMorph.prototype.setHue = function (num) {
     var hsv = this.color.hsv(),
         x = this.xPosition(),
-        y = this.yPosition();
+        y = this.yPosition(),
+        n = +num;
 
-    hsv[0] = Math.max(Math.min(+num || 0, 100), 0) / 100;
+    if (n < 0 || n > 100) { // wrap the hue
+        n = (n < 0 ? 100 : 0) + n % 100;
+    }
+    hsv[0] = n / 100;
+    // hsv[0] = Math.max(Math.min(+num || 0, 100), 0) / 100; // old code
     hsv[1] = 1; // we gotta fix this at some time
     this.color.set_hsv.apply(this.color, hsv);
     if (!this.costume) {
@@ -3560,7 +3565,7 @@ SpriteMorph.prototype.setBrightness = function (num) {
         y = this.yPosition();
 
     hsv[1] = 1; // we gotta fix this at some time
-    hsv[2] = Math.max(Math.min(+num || 0, 100), 0) / 100;
+    hsv[2] = Math.max(Math.min(+num || 0, 100), 0) / 100; // shade doesn't wrap
     this.color.set_hsv.apply(this.color, hsv);
     if (!this.costume) {
         this.drawNew();
@@ -3603,7 +3608,9 @@ SpriteMorph.prototype.overlappingImage = function (otherSprite) {
         oImg = newCanvas(oRect.extent(), true),
         ctx = oImg.getContext('2d');
 
-    if (oRect.width() < 1 || oRect.height() < 1) {
+    if (oRect.width() < 1 || oRect.height() < 1 ||
+            !this.image.width || !this.image.height
+            || !otherSprite.image.width || !otherSprite.image.height) {
         return newCanvas(new Point(1, 1), true);
     }
     ctx.drawImage(
@@ -3628,6 +3635,10 @@ SpriteMorph.prototype.doStamp = function () {
         isWarped = this.isWarped,
         originalAlpha = context.globalAlpha;
 
+    if (this.image.width < 1 || (this.image.height < 1)) {
+        // too small to draw
+        return;
+    }
     if (isWarped) {
         this.endWarp();
     }
@@ -3645,6 +3656,7 @@ SpriteMorph.prototype.doStamp = function () {
     if (isWarped) {
         this.startWarp();
     }
+    stage.cachedPenTrailsMorph = null;
 };
 
 SpriteMorph.prototype.clear = function () {
@@ -4025,6 +4037,10 @@ SpriteMorph.prototype.applyGraphicsEffects = function (canvas) {
     }
 
     if (this.graphicsChanged()) {
+        if (!canvas.width || !canvas.height) {
+            // too small to get image data, abort
+            return canvas;
+        }
         ctx = canvas.getContext("2d");
         imagedata = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
@@ -4259,6 +4275,7 @@ SpriteMorph.prototype.drawLine = function (start, dest) {
         if (this.isWarped === false) {
             this.world().broken.push(damaged);
         }
+        this.parent.cachedPenTrailsMorph = null;
     }
 };
 
@@ -4266,6 +4283,7 @@ SpriteMorph.prototype.floodFill = function () {
     if (!this.parent.bounds.containsPoint(this.rotationCenter())) {
         return;
     }
+    this.parent.cachedPenTrailsMorph = null;
     if (this.color.a > 1) {
         // fix a legacy bug in Morphic color detection
         this.color.a = this.color.a / 255;
@@ -5455,7 +5473,7 @@ SpriteMorph.prototype.setExemplar = function (another) {
     if (!this.isTemporary) {
         ide = this.parentThatIsA(IDE_Morph);
         if (ide) {
-            ide.flushBlocksCache('variables');
+            ide.flushBlocksCache();
             ide.refreshPalette();
         }
     }
@@ -6373,6 +6391,8 @@ StageMorph.prototype.init = function (globals) {
         'brightness': 0
     };
 
+    this.cachedPenTrailsMorph = null; // optimization, do not persist
+
     StageMorph.uber.init.call(this);
 
     this.acceptsDrops = false;
@@ -6391,6 +6411,7 @@ StageMorph.prototype.setScale = function (number) {
         myself = this;
 
     if (delta === 1) {return; }
+    this.cachedPenTrailsMorph = null;
     Morph.prototype.trackChanges = false;
     this.scale = number;
     this.setExtent(this.dimensions.multiplyBy(number));
@@ -6513,6 +6534,7 @@ StageMorph.prototype.drawOn = function (aCanvas, aRect) {
 };
 
 StageMorph.prototype.clearPenTrails = function () {
+    this.cachedPenTrailsMorph = null;
     this.trailsCanvas = newCanvas(this.dimensions);
     this.changed();
 };
@@ -6526,10 +6548,18 @@ StageMorph.prototype.penTrails = function () {
 
 StageMorph.prototype.penTrailsMorph = function () {
     // for collision detection purposes
-    var morph = new Morph(),
-        trails = this.penTrails(),
-        ctx;
+    var morph, trails, ctx;
+
+    if (this.cachedPenTrailsMorph) {
+        return this.cachedPenTrailsMorph;
+    }
+    morph = new Morph();
+    trails = this.penTrails();
     morph.bounds = this.bounds.copy();
+    if (this.image.width === trails.width) {
+        morph.image = trails;
+        return morph;
+    }
     morph.image = newCanvas(this.extent());
     ctx = morph.image.getContext('2d');
     ctx.drawImage(
@@ -6543,6 +6573,7 @@ StageMorph.prototype.penTrailsMorph = function () {
         this.image.width,
         this.image.height
     );
+    this.cachedPenTrailsMorph = morph;
     return morph;
 };
 
@@ -9585,13 +9616,16 @@ WatcherMorph.prototype.userMenu = function () {
                     function () {
                         var file;
 
-                        function txtOnlyMsg(ftype) {
-                            ide.inform(
+                        function txtOnlyMsg(ftype, anyway) {
+                            ide.confirm(
+                                localize(
+                                    'Snap! can only import "text" files.\n' +
+                                        'You selected a file of type "' +
+                                        ftype +
+                                        '".'
+                                ) + '\n\n' + localize('Open anyway?'),
                                 'Unable to import',
-                                'Snap! can only import "text" files.\n' +
-                                    'You selected a file of type "' +
-                                    ftype +
-                                    '".'
+                                anyway // callback
                             );
                         }
 
@@ -9604,10 +9638,24 @@ WatcherMorph.prototype.userMenu = function () {
                                 );
                             };
 
-                            if (aFile.type.indexOf("text") === 0) {
-                                frd.readAsText(aFile);
+                            if (aFile.type.indexOf("text") === -1) {
+                                // special cases for Windows
+                                // check the file extension for text-like-ness
+                                if (contains(
+                                    ['txt', 'csv', 'xml', 'json', 'tsv'],
+                                    aFile.name.split('.').pop().toLowerCase()
+                                )) {
+                                    frd.readAsText(aFile);
+                                } else {
+                                    // show a warning and an option
+                                    // letting the user load the file anyway
+                                    txtOnlyMsg(
+                                        aFile.type,
+                                        function () {frd.readAsText(aFile); }
+                                    );
+                                }
                             } else {
-                                txtOnlyMsg(aFile.type);
+                                frd.readAsText(aFile);
                             }
                         }
 
