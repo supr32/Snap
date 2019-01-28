@@ -9,7 +9,7 @@
     written by Jens Mönig
     jens@moenig.org
 
-    Copyright (C) 2018 by Jens Mönig
+    Copyright (C) 2019 by Jens Mönig
 
     This file is part of Snap!.
 
@@ -83,7 +83,7 @@ BlockEditorMorph, BlockDialogMorph, PrototypeHatBlockMorph, localize,
 TableMorph, TableFrameMorph, normalizeCanvas, BooleanSlotMorph, HandleMorph,
 AlignmentMorph, Process, XML_Element, VectorPaintEditorMorph*/
 
-modules.objects = '2018-November-28';
+modules.objects = '2019-January-28';
 
 var SpriteMorph;
 var StageMorph;
@@ -377,11 +377,12 @@ SpriteMorph.prototype.initBlocks = function () {
             category: 'looks',
             spec: 'hide'
         },
-        comeToFront: {
+        goToLayer: {
             only: SpriteMorph,
             type: 'command',
             category: 'looks',
-            spec: 'go to front'
+            spec: 'go to %layer layer',
+            defaults: ['front']
         },
         goBack: {
             only: SpriteMorph,
@@ -502,33 +503,39 @@ SpriteMorph.prototype.initBlocks = function () {
             category: 'pen',
             spec: 'set pen color to %clr'
         },
-        changeHue: {
+        setPenHSVA: {
             only: SpriteMorph,
             type: 'command',
             category: 'pen',
-            spec: 'change pen color by %n',
-            defaults: [10]
+            spec: 'set pen %hsva to %n',
+            defaults: [['hue'], 50]
         },
-        setHue: {
+        changePenHSVA: {
             only: SpriteMorph,
             type: 'command',
             category: 'pen',
-            spec: 'set pen color to %n',
-            defaults: [0]
+            spec: 'change pen %hsva by %n',
+            defaults: [['hue'], 10]
         },
-        changeBrightness: {
-            only: SpriteMorph,
+        setBackgroundColor: {
+            only: StageMorph,
             type: 'command',
             category: 'pen',
-            spec: 'change pen shade by %n',
-            defaults: [10]
+            spec: 'set background color to %clr'
         },
-        setBrightness: {
-            only: SpriteMorph,
+        setBackgroundHSVA: {
+            only: StageMorph,
             type: 'command',
             category: 'pen',
-            spec: 'set pen shade to %n',
-            defaults: [100]
+            spec: 'set background %hsva to %n',
+            defaults: [['hue'], 50]
+        },
+        changeBackgroundHSVA: {
+            only: StageMorph,
+            type: 'command',
+            category: 'pen',
+            spec: 'change background %hsva by %n',
+            defaults: [['hue'], 10]
         },
         changeSize: {
             only: SpriteMorph,
@@ -618,18 +625,18 @@ SpriteMorph.prototype.initBlocks = function () {
         doForever: {
             type: 'command',
             category: 'control',
-            spec: 'forever %c'
+            spec: 'forever %loop'
         },
         doRepeat: {
             type: 'command',
             category: 'control',
-            spec: 'repeat %n %c',
+            spec: 'repeat %n %loop',
             defaults: [10]
         },
         doUntil: {
             type: 'command',
             category: 'control',
-            spec: 'repeat until %b %c'
+            spec: 'repeat until %b %loop'
         },
         doIf: {
             type: 'command',
@@ -641,36 +648,11 @@ SpriteMorph.prototype.initBlocks = function () {
             category: 'control',
             spec: 'if %b %c else %c'
         },
-
-    /* migrated to a newer block version:
-
-        doStop: {
-            type: 'command',
-            category: 'control',
-            spec: 'stop script'
-        },
-        doStopAll: {
-            type: 'command',
-            category: 'control',
-            spec: 'stop all %stop'
-        },
-    */
-
         doStopThis: {
             type: 'command',
             category: 'control',
             spec: 'stop %stopChoices'
         },
-
-    /* migrated to doStopThis:
-
-        doStopOthers: {
-            type: 'command',
-            category: 'control',
-            spec: 'stop %stopOthersChoices'
-        },
-    */
-
         doRun: {
             type: 'command',
             category: 'control',
@@ -691,13 +673,6 @@ SpriteMorph.prototype.initBlocks = function () {
             category: 'control',
             spec: 'report %s'
         },
-    /*
-        doStopBlock: { // migrated to a newer block version
-            type: 'command',
-            category: 'control',
-            spec: 'stop block'
-        },
-    */
         doCallCC: {
             type: 'command',
             category: 'control',
@@ -714,8 +689,7 @@ SpriteMorph.prototype.initBlocks = function () {
             spec: 'warp %c'
         },
 
-        // Message passing - very experimental
-
+        // Message passing
         doTellTo: {
             type: 'command',
             category: 'control',
@@ -729,7 +703,6 @@ SpriteMorph.prototype.initBlocks = function () {
         },
 
         // Cloning
-
         receiveOnClone: {
             type: 'hat',
             category: 'control',
@@ -753,7 +726,6 @@ SpriteMorph.prototype.initBlocks = function () {
         },
 
         // Debugging - pausing
-
         doPauseAll: {
             type: 'command',
             category: 'control',
@@ -761,7 +733,6 @@ SpriteMorph.prototype.initBlocks = function () {
         },
 
         // Sensing
-
         reportTouchingObject: {
             only: SpriteMorph,
             type: 'predicate',
@@ -785,6 +756,12 @@ SpriteMorph.prototype.initBlocks = function () {
             type: 'reporter',
             category: 'sensing',
             spec: 'filtered for %clr'
+        },
+        reportAspect: {
+            type: 'reporter',
+            category: 'sensing',
+            spec: '%asp at %loc',
+            defaults: [['hue']]
         },
         reportStackSize: {
             dev: true,
@@ -841,13 +818,6 @@ SpriteMorph.prototype.initBlocks = function () {
             category: 'sensing',
             spec: 'key %key pressed?'
         },
-    /*
-        reportDistanceTo: { // has been superseded by reportRelationTo
-            type: 'reporter',
-            category: 'sensing',
-            spec: 'distance to %dst'
-        },
-    */
         reportRelationTo: {
             only: SpriteMorph,
             type: 'reporter',
@@ -876,6 +846,11 @@ SpriteMorph.prototype.initBlocks = function () {
             category: 'sensing',
             spec: '%att of %spr',
             defaults: [['costume #']]
+        },
+        reportObject: {
+            type: 'reporter',
+            category: 'sensing',
+            spec: 'object %spr'
         },
         reportURL: {
             type: 'reporter',
@@ -1084,19 +1059,6 @@ SpriteMorph.prototype.initBlocks = function () {
             defaults: [null, 0]
         },
 
-    /*
-        reportScript: {
-            type: 'reporter',
-            category: 'operators',
-            spec: 'the script %parms %c'
-        },
-        reify: {
-            type: 'reporter',
-            category: 'operators',
-            spec: 'the %f block %parms'
-        },
-    */
-
         // Variables
         doSetVar: {
             type: 'command',
@@ -1126,7 +1088,7 @@ SpriteMorph.prototype.initBlocks = function () {
             spec: 'script variables %scriptVars'
         },
 
-        // inheritance - experimental
+        // inheritance
         doDeleteAttr: {
             type: 'command',
             category: 'variables',
@@ -1202,12 +1164,11 @@ SpriteMorph.prototype.initBlocks = function () {
             dev: true,
             type: 'command',
             category: 'lists',
-            spec: 'for %upvar in %l %cl',
+            spec: 'for %upvar in %l %cla',
             defaults: [localize('each item')]
         },
 
         // Tables - experimental
-
         doShowTable: {
             dev: true,
             type: 'command',
@@ -1215,32 +1176,24 @@ SpriteMorph.prototype.initBlocks = function () {
             spec: 'show table %l'
         },
 
-        // Code mapping - experimental
-        doMapCodeOrHeader: { // experimental
+        // Code mapping
+        doMapCodeOrHeader: {
             type: 'command',
             category: 'other',
             spec: 'map %cmdRing to %codeKind %code'
         },
-        doMapValueCode: { // experimental
+        doMapValueCode: {
             type: 'command',
             category: 'other',
             spec: 'map %mapValue to code %code',
             defaults: [['String'], '<#1>']
         },
-    /* obsolete - superseded by 'doMapValue'
-        doMapStringCode: { // experimental
-            type: 'command',
-            category: 'other',
-            spec: 'map String to code %code',
-            defaults: ['<#1>']
-        },
-    */
-        doMapListCode: { // experimental
+        doMapListCode: {
             type: 'command',
             category: 'other',
             spec: 'map %codeListPart of %codeListKind to code %code'
         },
-        reportMappedCode: { // experimental
+        reportMappedCode: {
             type: 'reporter',
             category: 'other',
             spec: 'code of %cmdRing'
@@ -1299,6 +1252,30 @@ SpriteMorph.prototype.initBlockMigrations = function () {
         	selector: 'reportRelationTo',
          	inputs: [['distance']],
             offset: 1
+        },
+        comeToFront: {
+            selector: 'goToLayer',
+            inputs: [['front']]
+        },
+        setHue: {
+            selector: 'setPenHSVA',
+            inputs: [['hue']],
+            offset: 1
+        },
+        setBrightness: {
+            selector: 'setPenHSVA',
+            inputs: [['brightness']],
+            offset: 1
+        },
+        changeHue: {
+            selector: 'changePenHSVA',
+            inputs: [['hue']],
+            offset: 1
+        },
+        changeBrightness: {
+            selector: 'changePenHSVA',
+            inputs: [['brightness']],
+            offset: 1
         }
     };
 };
@@ -1339,10 +1316,13 @@ SpriteMorph.prototype.blockAlternatives = {
     down: ['up', 'clear', 'doStamp'],
     up: ['down', 'clear', 'doStamp'],
     doStamp: ['clear', 'down', 'up'],
-    changeHue: ['setHue', 'changeBrightness', 'setBrightness'],
-    setHue: ['changeHue', 'changeBrightness', 'setBrightness'],
-    changeBrightness: ['setBrightness', 'setHue', 'changeHue'],
-    setBrightness: ['changeBrightness', 'setHue', 'changeHue'],
+
+    setPenHSVA: ['changePenHSVA'],
+    changePenHSVA: ['setPenHSVA'],
+
+    setBackgroundHSVA: ['changeBackgroundHSVA'],
+    changeBackgroundHSVA: ['setBackgroundHSVA'],
+
     changeSize: ['setSize'],
     setSize: ['changeSize'],
 
@@ -1404,6 +1384,9 @@ SpriteMorph.prototype.init = function (globals) {
     this.isCorpse = false; // indicate whether a sprite/clone has been deleted
     this.cloneOriginName = '';
 
+    // pen hsv color support
+    this.cachedHSV = [0, 0, 0]; // not serialized
+
     // only temporarily for serialization
     this.inheritedMethodsCache = [];
 
@@ -1442,6 +1425,7 @@ SpriteMorph.prototype.init = function (globals) {
 
     SpriteMorph.uber.init.call(this);
 
+    this.cachedHSV = this.color.hsv();
     this.isDraggable = true;
     this.isDown = false;
     this.heading = 90;
@@ -1463,6 +1447,7 @@ SpriteMorph.prototype.fullCopy = function (forClone) {
     c.color = this.color.copy();
     c.blocksCache = {};
     c.paletteCache = {};
+    c.cachedHSV = c.color.hsv();
     arr = [];
     this.inheritedAttributes.forEach(function (att) {
         arr.push(att);
@@ -1907,7 +1892,7 @@ SpriteMorph.prototype.blockTemplates = function (category) {
         blocks.push(block('show'));
         blocks.push(block('hide'));
         blocks.push('-');
-        blocks.push(block('comeToFront'));
+        blocks.push(block('goToLayer'));
         blocks.push(block('goBack'));
 
     // for debugging: ///////////////
@@ -1957,11 +1942,8 @@ SpriteMorph.prototype.blockTemplates = function (category) {
         blocks.push(block('up'));
         blocks.push('-');
         blocks.push(block('setColor'));
-        blocks.push(block('changeHue'));
-        blocks.push(block('setHue'));
-        blocks.push('-');
-        blocks.push(block('changeBrightness'));
-        blocks.push(block('setBrightness'));
+        blocks.push(block('changePenHSVA'));
+        blocks.push(block('setPenHSVA'));
         blocks.push('-');
         blocks.push(block('changeSize'));
         blocks.push(block('setSize'));
@@ -1999,17 +1981,7 @@ SpriteMorph.prototype.blockTemplates = function (category) {
         blocks.push(block('doIfElse'));
         blocks.push('-');
         blocks.push(block('doReport'));
-    /*
-    // old STOP variants, migrated to a newer version, now redundant
-        blocks.push(block('doStopBlock'));
-        blocks.push(block('doStop'));
-        blocks.push(block('doStopAll'));
-    */
         blocks.push(block('doStopThis'));
-    /*
-        // migrated to doStopThis, now redundant
-        blocks.push(block('doStopOthers'));
-    */
         blocks.push('-');
         blocks.push(block('doRun'));
         blocks.push(block('fork'));
@@ -2049,6 +2021,7 @@ SpriteMorph.prototype.blockTemplates = function (category) {
         blocks.push(block('reportKeyPressed'));
         blocks.push('-');
         blocks.push(block('reportRelationTo'));
+        blocks.push(block('reportAspect'));
         blocks.push('-');
         blocks.push(block('doResetTimer'));
         blocks.push(watcherToggle('getTimer'));
@@ -2059,6 +2032,8 @@ SpriteMorph.prototype.blockTemplates = function (category) {
         if (SpriteMorph.prototype.enableFirstClass) {
             blocks.push(block('reportGet'));
         }
+
+        blocks.push(block('reportObject'));
         blocks.push('-');
 
         blocks.push(block('reportURL'));
@@ -3196,7 +3171,7 @@ SpriteMorph.prototype.playSound = function (name) {
     var stage = this.parentThatIsA(StageMorph),
         sound = name instanceof Sound ? name : detect(
             this.sounds.asArray(),
-            function (s) {return s.name === name; }
+            function (s) {return s.name === name.toString(); }
         ),
         active;
     if (sound) {
@@ -3515,74 +3490,75 @@ SpriteMorph.prototype.show = function () {
 
 // SpriteMorph pen color
 
+SpriteMorph.prototype.setColorComponentHSVA = function (idx, num) {
+    var x = this.xPosition(),
+        y = this.yPosition(),
+        n = +num;
+
+    idx = +idx;
+    if (idx < 0 || idx > 3) {return; }
+    if (idx == 0) {
+        if (n < 0 || n > 100) { // wrap the hue
+            n = (n < 0 ? 100 : 0) + n % 100;
+        }
+    } else {
+        n = Math.min(100, Math.max(0, n));
+    }
+    if (idx === 3) {
+        this.color.a = 1 - n / 100;
+    } else {
+        this.cachedHSV[idx] = n / 100;
+        this.color.set_hsv.apply(this.color, this.cachedHSV);
+    }
+    if (!this.costume) {
+        this.drawNew();
+        this.changed();
+    }
+    this.gotoXY(x, y);
+};
+
+SpriteMorph.prototype.getColorComponentHSLA = function (idx) {
+    idx = +idx;
+    if (idx === 3) {
+        return (1 - this.color.a) * 100;
+    }
+    return this.cachedHSV[idx] * 100;
+};
+
+SpriteMorph.prototype.changeColorComponentHSVA = function (idx, delta) {
+    this.setColorComponentHSVA(
+        idx,
+        this.getColorComponentHSLA(idx) + (+delta || 0)
+    );
+};
+
 SpriteMorph.prototype.setColor = function (aColor) {
     var x = this.xPosition(),
         y = this.yPosition();
-    if (!this.color.eq(aColor)) {
+    if (!this.color.eq(aColor, true)) { // observeAlpha
         this.color = aColor.copy();
         if (!this.costume) {
             this.drawNew();
             this.silentGotoXY(x, y);
         }
+        this.cachedHSV = this.color.hsv();
     }
 };
 
-SpriteMorph.prototype.getHue = function () {
-    return this.color.hsv()[0] * 100;
-};
-
-SpriteMorph.prototype.setHue = function (num) {
-    var hsv = this.color.hsv(),
-        x = this.xPosition(),
-        y = this.yPosition(),
-        n = +num;
-
-    if (n < 0 || n > 100) { // wrap the hue
-        n = (n < 0 ? 100 : 0) + n % 100;
-    }
-    hsv[0] = n / 100;
-    // hsv[0] = Math.max(Math.min(+num || 0, 100), 0) / 100; // old code
-    hsv[1] = 1; // we gotta fix this at some time
-    this.color.set_hsv.apply(this.color, hsv);
-    if (!this.costume) {
-        this.drawNew();
-        this.changed();
-    }
-    this.gotoXY(x, y);
-};
-
-SpriteMorph.prototype.changeHue = function (delta) {
-    this.setHue(this.getHue() + (+delta || 0));
-};
-
-SpriteMorph.prototype.getBrightness = function () {
-    return this.color.hsv()[2] * 100;
-};
-
-SpriteMorph.prototype.setBrightness = function (num) {
-    var hsv = this.color.hsv(),
-        x = this.xPosition(),
-        y = this.yPosition();
-
-    hsv[1] = 1; // we gotta fix this at some time
-    hsv[2] = Math.max(Math.min(+num || 0, 100), 0) / 100; // shade doesn't wrap
-    this.color.set_hsv.apply(this.color, hsv);
-    if (!this.costume) {
-        this.drawNew();
-        this.changed();
-    }
-    this.gotoXY(x, y);
-};
-
-SpriteMorph.prototype.changeBrightness = function (delta) {
-    this.setBrightness(this.getBrightness() + (+delta || 0));
-};
+SpriteMorph.prototype.setBackgroundColor = SpriteMorph.prototype.setColor;
 
 // SpriteMorph layers
 
 SpriteMorph.prototype.comeToFront = function () {
     if (this.parent) {
         this.parent.add(this);
+        this.changed();
+    }
+};
+
+SpriteMorph.prototype.goToBack = function () {
+    if (this.parent) {
+        this.parent.addBack(this);
         this.changed();
     }
 };
@@ -6368,6 +6344,8 @@ StageMorph.prototype.init = function (globals) {
 
     this.scale = 1; // for display modes, do not persist
 
+    this.cachedHSV = [0, 0, 0]; // for background hsv support, not serialized
+
     this.keysPressed = {}; // for handling keyboard events, do not persist
     this.blocksCache = {}; // not to be serialized (!)
     this.paletteCache = {}; // not to be serialized (!)
@@ -6393,8 +6371,11 @@ StageMorph.prototype.init = function (globals) {
 
     this.cachedPenTrailsMorph = null; // optimization, do not persist
 
+    this.remixID = null;
+
     StageMorph.uber.init.call(this);
 
+    this.cachedHSV = this.color.hsv();
     this.acceptsDrops = false;
     this.setColor(new Color(255, 255, 255));
     this.fps = this.frameRate;
@@ -6623,7 +6604,7 @@ StageMorph.prototype.getPixelColor = function (aPoint) {
     var point, context, data;
 	if (this.trailsCanvas) {
         point = aPoint.subtract(this.bounds.origin);
-        context = this.trailsCanvas.getContext('2d');
+        context = this.penTrailsMorph().image.getContext('2d');
         data = context.getImageData(point.x, point.y, 1, 1);
         if (data.data[3] === 0) {
         	return StageMorph.uber.getPixelColor.call(this, aPoint);
@@ -6951,6 +6932,7 @@ StageMorph.prototype.fireGreenFlagEvent = function () {
         ide = this.parentThatIsA(IDE_Morph),
         myself = this;
 
+    this.removeAllClones();
     this.children.concat(this).forEach(function (morph) {
         if (isSnapObject(morph)) {
             morph.allHatBlocksFor('__shout__go__').forEach(function (block) {
@@ -7184,6 +7166,11 @@ StageMorph.prototype.blockTemplates = function (category) {
     } else if (cat === 'pen') {
 
         blocks.push(block('clear'));
+        blocks.push('-');
+        blocks.push(block('setBackgroundColor'));
+        blocks.push(block('changeBackgroundHSVA'));
+        blocks.push(block('setBackgroundHSVA'));
+        blocks.push('-');
         blocks.push(block('reportPenTrailsAsCostume'));
         blocks.push('=');
         blocks.push(this.makeBlockButton(cat));
@@ -7214,17 +7201,7 @@ StageMorph.prototype.blockTemplates = function (category) {
         blocks.push(block('doIfElse'));
         blocks.push('-');
         blocks.push(block('doReport'));
-    /*
-    // old STOP variants, migrated to a newer version, now redundant
-        blocks.push(block('doStopBlock'));
-        blocks.push(block('doStop'));
-        blocks.push(block('doStopAll'));
-    */
         blocks.push(block('doStopThis'));
-    /*
-        // migrated to doStopThis, now redundant
-        blocks.push(block('doStopOthers'));
-    */
         blocks.push('-');
         blocks.push(block('doRun'));
         blocks.push(block('fork'));
@@ -7257,6 +7234,8 @@ StageMorph.prototype.blockTemplates = function (category) {
         blocks.push('-');
         blocks.push(block('reportKeyPressed'));
         blocks.push('-');
+        blocks.push(block('reportAspect'));
+        blocks.push('-');
         blocks.push(block('doResetTimer'));
         blocks.push(watcherToggle('getTimer'));
         blocks.push(block('getTimer'));
@@ -7266,6 +7245,8 @@ StageMorph.prototype.blockTemplates = function (category) {
         if (SpriteMorph.prototype.enableFirstClass) {
             blocks.push(block('reportGet'));
         }
+
+        blocks.push(block('reportObject'));
         blocks.push('-');
 
         blocks.push(block('reportURL'));
@@ -7611,6 +7592,47 @@ StageMorph.prototype.show = function () {
 
 StageMorph.prototype.createClone = nop;
 StageMorph.prototype.newClone = nop;
+
+// StageMorph background color setting
+
+StageMorph.prototype.setColorComponentHSVA = function (idx, num) {
+    var n = +num;
+
+    idx = +idx;
+    if (idx < 0 || idx > 3) {return; }
+    if (idx == 0) {
+        if (n < 0 || n > 100) { // wrap the hue
+            n = (n < 0 ? 100 : 0) + n % 100;
+        }
+    } else {
+        n = Math.min(100, Math.max(0, n));
+    }
+    if (idx === 3) {
+        this.color.a = 1 - n / 100;
+    } else {
+        this.cachedHSV[idx] = n / 100;
+        this.color.set_hsv.apply(this.color, this.cachedHSV);
+    }
+    this.drawNew();
+    this.changed();
+};
+
+StageMorph.prototype.getColorComponentHSLA
+    = SpriteMorph.prototype.getColorComponentHSLA;
+
+StageMorph.prototype.changeColorComponentHSVA
+    = SpriteMorph.prototype.changeColorComponentHSVA;
+
+StageMorph.prototype.setColor = function (aColor) {
+    if (!this.color.eq(aColor, true)) { // observeAlpha
+        this.color = aColor.copy();
+        this.drawNew();
+        this.changed();
+        this.cachedHSV = this.color.hsv();
+    }
+};
+
+StageMorph.prototype.setBackgroundColor = StageMorph.prototype.setColor;
 
 // StageMorph pseudo-inherited behavior
 
@@ -9522,6 +9544,7 @@ WatcherMorph.prototype.mouseClickLeft = function () {
 WatcherMorph.prototype.userMenu = function () {
     var myself = this,
         ide = this.parentThatIsA(IDE_Morph),
+        shiftClicked = (this.world().currentKey === 16),
         menu = new MenuMorph(this),
         on = '\u25CF',
         off = '\u25CB',
@@ -9593,87 +9616,57 @@ WatcherMorph.prototype.userMenu = function () {
         menu.addLine();
         menu.addItem(
             'import...',
-            function () {
-                var inp = document.createElement('input'),
-                    ide = myself.parentThatIsA(IDE_Morph);
-                if (ide.filePicker) {
-                    document.body.removeChild(ide.filePicker);
-                    ide.filePicker = null;
-                }
-                inp.type = 'file';
-                inp.style.color = "transparent";
-                inp.style.backgroundColor = "transparent";
-                inp.style.border = "none";
-                inp.style.outline = "none";
-                inp.style.position = "absolute";
-                inp.style.top = "0px";
-                inp.style.left = "0px";
-                inp.style.width = "0px";
-                inp.style.height = "0px";
-                inp.style.display = "none";
-                inp.addEventListener(
-                    "change",
-                    function () {
-                        var file;
-
-                        function txtOnlyMsg(ftype, anyway) {
-                            ide.confirm(
-                                localize(
-                                    'Snap! can only import "text" files.\n' +
-                                        'You selected a file of type "' +
-                                        ftype +
-                                        '".'
-                                ) + '\n\n' + localize('Open anyway?'),
-                                'Unable to import',
-                                anyway // callback
-                            );
-                        }
-
-                        function readText(aFile) {
-                            var frd = new FileReader();
-                            frd.onloadend = function (e) {
-                                myself.target.setVar(
-                                    myself.getter,
-                                    e.target.result
-                                );
-                            };
-
-                            if (aFile.type.indexOf("text") === -1) {
-                                // special cases for Windows
-                                // check the file extension for text-like-ness
-                                if (contains(
-                                    ['txt', 'csv', 'xml', 'json', 'tsv'],
-                                    aFile.name.split('.').pop().toLowerCase()
-                                )) {
-                                    frd.readAsText(aFile);
-                                } else {
-                                    // show a warning and an option
-                                    // letting the user load the file anyway
-                                    txtOnlyMsg(
-                                        aFile.type,
-                                        function () {frd.readAsText(aFile); }
-                                    );
-                                }
-                            } else {
-                                frd.readAsText(aFile);
-                            }
-                        }
-
-                        document.body.removeChild(inp);
-                        ide.filePicker = null;
-                        if (inp.files.length > 0) {
-                            file = inp.files[inp.files.length - 1];
-                            readText(file);
-                        }
-                    },
-                    false
-                );
-                document.body.appendChild(inp);
-                ide.filePicker = inp;
-                inp.click();
-            }
+            'importData'
         );
+        if (shiftClicked) {
+            menu.addItem(
+                'import raw data...',
+                function () {myself.importData(true); },
+                'do not attempt to\nparse or format data',
+                new Color(100, 0, 0)
+            );
+            if (this.currentValue instanceof List &&
+                    this.currentValue.canBeCSV()) {
+                menu.addItem(
+                    'export as CSV...',
+                    function () {
+                        var ide = myself.parentThatIsA(IDE_Morph);
+                        ide.saveFileAs(
+                            myself.currentValue.asCSV(),
+                            'text/csv;charset=utf-8', // RFC 4180
+                            myself.getter // variable name
+                        );
+                    },
+                    null,
+                    new Color(100, 0, 0)
+                );
+            }
+            if (this.currentValue instanceof List &&
+                    this.currentValue.canBeJSON()) {
+                menu.addItem(
+                    'export as JSON...',
+                    function () {
+                        var ide = myself.parentThatIsA(IDE_Morph);
+                        ide.saveFileAs(
+                            myself.currentValue.asJSON(true), // guess objects
+                            'text/json;charset=utf-8',
+                            myself.getter // variable name
+                        );
+                    },
+                    null,
+                    new Color(100, 0, 0)
+                );
+            }
+        }
         if (isString(this.currentValue) || !isNaN(+this.currentValue)) {
+            if (shiftClicked) {
+                menu.addItem(
+                    'parse',
+                    'parseTxt',
+                    'try to convert\nraw data into a list',
+                    new Color(100, 0, 0)
+                );
+            }
             menu.addItem(
                 'export...',
                 function () {
@@ -9681,6 +9674,32 @@ WatcherMorph.prototype.userMenu = function () {
                     ide.saveFileAs(
                         myself.currentValue.toString(),
                         'text/plain;charset=utf-8',
+                        myself.getter // variable name
+                    );
+                }
+            );
+        } else if (this.currentValue instanceof List &&
+                this.currentValue.canBeCSV()) {
+            menu.addItem(
+                'export...',
+                function () {
+                    var ide = myself.parentThatIsA(IDE_Morph);
+                    ide.saveFileAs(
+                        myself.currentValue.asCSV(),
+                        'text/csv;charset=utf-8', // RFC 4180
+                        myself.getter // variable name
+                    );
+                }
+            );
+        } else if (this.currentValue instanceof List &&
+                this.currentValue.canBeJSON()) {
+            menu.addItem(
+                'export...',
+                function () {
+                    var ide = myself.parentThatIsA(IDE_Morph);
+                    ide.saveFileAs(
+                        myself.currentValue.asJSON(true), // guessObjects
+                        'text/json;charset=utf-8',
                         myself.getter // variable name
                     );
                 }
@@ -9696,6 +9715,116 @@ WatcherMorph.prototype.userMenu = function () {
         }
     }
     return menu;
+};
+
+WatcherMorph.prototype.importData = function (raw) {
+    // raw is a Boolean flag selecting to keep the data unparsed
+    var inp = document.createElement('input'),
+        ide = this.parentThatIsA(IDE_Morph),
+        myself = this;
+
+    function userImport() {
+
+        function txtOnlyMsg(ftype, anyway) {
+            ide.confirm(
+                localize(
+                    'Snap! can only import "text" files.\n' +
+                        'You selected a file of type "' +
+                        ftype +
+                        '".'
+                ) + '\n\n' + localize('Open anyway?'),
+                'Unable to import',
+                anyway // callback
+            );
+        }
+
+        function readText(aFile) {
+            var frd = new FileReader(),
+                ext = aFile.name.split('.').pop().toLowerCase();
+
+            function isTextFile(aFile) {
+                // special cases for Windows
+                // check the file extension for text-like-ness
+                return aFile.type.indexOf('text') !== -1 ||
+                    contains(['txt', 'csv', 'xml', 'json', 'tsv'], ext);
+            }
+
+            function isType(aFile, string) {
+                return aFile.type.indexOf(string) !== -1 || (ext === string);
+            }
+
+            frd.onloadend = function (e) {
+                if (!raw && isType(aFile, 'csv')) {
+                    myself.target.setVar(
+                        myself.getter,
+                        Process.prototype.parseCSV(e.target.result)
+                    );
+                } else if (!raw && isType(aFile, 'json')) {
+                    myself.target.setVar(
+                        myself.getter,
+                        Process.prototype.parseJSON(e.target.result)
+                    );
+                } else {
+                    myself.target.setVar(
+                        myself.getter,
+                        e.target.result
+                    );
+                }
+            };
+
+            if (raw || isTextFile(aFile)) {
+                frd.readAsText(aFile);
+            } else {
+                // show a warning and an option
+                // letting the user load the file anyway
+                txtOnlyMsg(
+                    aFile.type,
+                    function () {frd.readAsText(aFile); }
+                );
+            }
+        }
+
+        document.body.removeChild(inp);
+        ide.filePicker = null;
+        if (inp.files.length > 0) {
+            readText(inp.files[inp.files.length - 1]);
+        }
+    }
+
+    if (ide.filePicker) {
+        document.body.removeChild(ide.filePicker);
+        ide.filePicker = null;
+    }
+    inp.type = 'file';
+    inp.style.color = "transparent";
+    inp.style.backgroundColor = "transparent";
+    inp.style.border = "none";
+    inp.style.outline = "none";
+    inp.style.position = "absolute";
+    inp.style.top = "0px";
+    inp.style.left = "0px";
+    inp.style.width = "0px";
+    inp.style.height = "0px";
+    inp.style.display = "none";
+    inp.addEventListener(
+        "change",
+        userImport,
+        false
+    );
+    document.body.appendChild(inp);
+    ide.filePicker = inp;
+    inp.click();
+};
+
+WatcherMorph.prototype.parseTxt = function () {
+    // experimental!
+    var src = this.target.vars[this.getter].value;
+    this.target.setVar(
+        this.getter,
+        src.indexOf('\[') === 0 ?
+            Process.prototype.parseJSON(src)
+                : Process.prototype.parseCSV(src)
+    );
 };
 
 WatcherMorph.prototype.setStyle = function (style) {

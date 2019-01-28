@@ -9,7 +9,7 @@
     written by Jens Mönig
     jens@moenig.org
 
-    Copyright (C) 2018 by Jens Mönig
+    Copyright (C) 2019 by Jens Mönig
 
     This file is part of Snap!.
 
@@ -59,10 +59,10 @@ MultiArgMorph, Point, ReporterBlockMorph, SyntaxElementMorph, contains, Costume,
 degrees, detect, nop, radians, ReporterSlotMorph, CSlotMorph, RingMorph, Sound,
 IDE_Morph, ArgLabelMorph, localize, XML_Element, hex_sha512, TableDialogMorph,
 StageMorph, SpriteMorph, StagePrompterMorph, Note, modules, isString, copy,
-isNil, WatcherMorph, List, ListWatcherMorph, alert, console, TableMorph,
+isNil, WatcherMorph, List, ListWatcherMorph, alert, console, TableMorph, Color,
 TableFrameMorph, ColorSlotMorph, isSnapObject, Map*/
 
-modules.threads = '2018-October-26';
+modules.threads = '2019-January-28';
 
 var ThreadManager;
 var Process;
@@ -2609,6 +2609,9 @@ Process.prototype.reportMonadic = function (fname, n) {
     case 'abs':
         result = Math.abs(x);
         break;
+    case 'neg':
+        result = n * -1;
+        break;
     case 'ceiling':
         result = Math.ceil(x);
         break;
@@ -2777,6 +2780,8 @@ Process.prototype.reportTextSplit = function (string, delimiter) {
         break;
     case 'csv':
         return this.parseCSV(string);
+    case 'json':
+        return this.parseJSON(string);
     /*
     case 'csv records':
         return this.parseCSVrecords(string);
@@ -2805,7 +2810,7 @@ Process.prototype.parseCSV = function (text) {
         char;
     for (idx = 0; idx < len; idx += 1) {
         char = text[idx];
-        if (char === '"') {
+        if (char === '\"') {
             if (esc && char === prev) {
                 fields[col] += char;
             }
@@ -2814,17 +2819,18 @@ Process.prototype.parseCSV = function (text) {
             char = '';
             col += 1;
             fields[col] = char;
-
-        } else if (char === '\n' && esc) {
-            if (prev === '\r') {
-                fields[col] = fields[col].slice(0, -1);
-            }
-            char = '';
+        } else if (char === '\r' && esc) {
             r += 1;
-            records[r] = [char];
+            records[r] = [''];
             fields = records[r];
             col = 0;
-
+        } else if (char === '\n' && esc) {
+            if (prev !== '\r') {
+                r += 1;
+                records[r] = [''];
+                fields = records[r];
+                col = 0;
+            }
         } else {
             fields[col] += char;
         }
@@ -2850,62 +2856,31 @@ Process.prototype.parseCSV = function (text) {
     return records;
 };
 
-/*
-Process.prototype.parseCSVrecords = function (string) {
-    // RFC 4180
-    // currently unused
-    // parse csv formatted text into a one-dimensional list of records
-    var lines = this.reportTextSplit(string, ['line']).asArray(),
-        len = lines.length,
-        i = 0,
-        cur,
-        records = [];
-    while (i < len) {
-        cur = lines[i];
-        while ((cur.split('"').length - 1) % 2 > 0) {
-            i += 1;
-            cur += '\n';
-            cur += lines[i];
-        }
-        records.push(cur);
-        i += 1;
-    }
-    if (records[records.length - 1].length < 1) {
-        records.pop();
-    }
-    return new List(records);
-};
-
-Process.prototype.parseCSVfields = function (text) {
-    // RFC 4180
-    // currently unused
-    // parse a single record of csv into a one-dimensional list of fields
-    var prev = '',
-        fields = [''],
-        col = 0,
-        esc = true,
-        len = text.length,
-        idx,
-        char;
-    for (idx = 0; idx < len; idx += 1) {
-        char = text[idx];
-        if (char === '"') {
-            if (esc && char === prev) {
-                fields[col] += char;
-            }
-            esc = !esc;
-        } else if (char === ',' && esc) {
-            char = '';
-            col += 1;
-            fields[col] = char;
+Process.prototype.parseJSON = function (string) {
+    // Bernat's original Snapi contribution
+    function listify(jsonObject) {
+        if (jsonObject instanceof Array) {
+            return new List(
+                jsonObject.map(function(eachElement) {
+                    return listify(eachElement);
+                })
+            );
+        } else if (jsonObject instanceof Object) {
+            return new List(
+                Object.keys(jsonObject).map(function(eachKey) {
+                    return new List([
+                        eachKey,
+                        listify(jsonObject[eachKey])
+                    ]);
+                })
+            );
         } else {
-            fields[col] += char;
+            return jsonObject;
         }
-        prev = char;
     }
-    return new List(fields);
+
+    return listify(JSON.parse(string));
 };
-*/
 
 // Process debugging
 
@@ -3070,6 +3045,43 @@ Process.prototype.doGotoObject = function (name) {
     }
 };
 
+// Process layering primitives
+
+Process.prototype.goToLayer = function (name) {
+    var option = this.inputOption(name),
+        thisObj = this.blockReceiver();
+    if (thisObj instanceof SpriteMorph) {
+        if (option === 'front') {
+            thisObj.comeToFront();
+        } else if (option === 'back') {
+            thisObj.goToBack();
+        }
+    }
+};
+
+// Process color primitives
+
+Process.prototype.setHSVA = function (name, num) {
+    var options = ['hue', 'saturation', 'brightness', 'transparency'];
+    this.blockReceiver().setColorComponentHSVA(
+        options.indexOf(this.inputOption(name)),
+        +num
+    );
+};
+
+Process.prototype.changeHSVA = function (name, num) {
+    var options = ['hue', 'saturation', 'brightness', 'transparency'];
+    this.blockReceiver().changeColorComponentHSVA(
+        options.indexOf(this.inputOption(name)),
+        +num
+    );
+};
+
+Process.prototype.setPenHSVA = Process.prototype.setHSVA;
+Process.prototype.changePenHSVA = Process.prototype.changeHSVA;
+Process.prototype.setBackgroundHSVA = Process.prototype.setHSVA;
+Process.prototype.changeBackgroundHSVA = Process.prototype.changeHSVA;
+
 // Process temporary cloning (Scratch-style)
 
 Process.prototype.createClone = function (name) {
@@ -3158,6 +3170,13 @@ Process.prototype.objectTouchingObject = function (thisObj, name) {
             }
             if (those.some(function (any) {
                     return any.isVisible && thisObj.isTouching(any);
+                    // check collision with any part, performance issue
+                    // commented out for now
+                /*
+                    return any.allParts().some(function (part) {
+                        return part.isVisible && thisObj.isTouching(part);
+                    })
+                */
                 })) {
                 return true;
             }
@@ -3214,6 +3233,155 @@ Process.prototype.reportColorIsTouchingColor = function (color1, color2) {
         }
     }
     return false;
+};
+
+Process.prototype.reportAspect = function (aspect, location) {
+    // sense colors and sprites anywhere,
+    // use sprites to read/write data encoded in colors.
+    //
+    // usage:
+    // ------
+    // left input selects color/saturation/brightness/transparency or "sprites".
+    // right input selects "mouse-pointer", "myself" or name of another sprite.
+    // you can also embed a a reporter with a reference to a sprite itself
+    // or a list of two items representing x- and y- coordinates.
+    //
+    // what you'll get:
+    // ----------------
+    // left input (aspect):
+    //
+    //      'hue'           - hsv HUE on a scale of 0 - 100
+    //      'saturation'    - hsv SATURATION on a scale of 0 - 100
+    //      'brightness'    - hsv VALUE on a scale of 0 - 100
+    //      'transparency'  - rgba ALPHA on a reversed (!) scale of 0 - 100
+    //      'sprites'       - a list of sprites at the location, empty if none
+    //
+    // right input (location):
+    //
+    //      'mouse-pointer' - color/sprites at mouse-pointer anywhere in Snap
+    //      'myself'        - sprites at or color UNDERNEATH the rotation center
+    //      sprite-name     - sprites at or color UNDERNEATH sprites's rot-ctr.
+    //      two-item-list   - color/sprites at x-/y- coordinates on the Stage
+    //
+    // what does "underneath" mean?
+    // ----------------------------
+    // the not-fully-transparent color of the top-layered sprite at the given
+    // location excluding the receiver sprite's own layer and all layers above
+    // it gets reported.
+    //
+    // color-aspect "underneath" a sprite means that the sprite's layer is
+    // relevant for what gets reported. Sprites can only sense colors in layers
+    // below themselves, not their own color and not colors in sprites above
+    // their own layer.
+
+    var choice = this.inputOption(aspect),
+        target = this.inputOption(location),
+        options = ['hue', 'saturation', 'brightness', 'transparency'],
+        idx = options.indexOf(choice),
+        thisObj = this.blockReceiver(),
+        thatObj,
+        stage = thisObj.parentThatIsA(StageMorph),
+        world = thisObj.world(),
+        point,
+        clr;
+
+    if (target === 'myself') {
+        if (choice === 'sprites') {
+            if (thisObj instanceof StageMorph) {
+                point = thisObj.center();
+            } else {
+                point = thisObj.rotationCenter();
+            }
+            return this.spritesAtPoint(point, stage);
+        } else {
+            clr = this.colorAtSprite(thisObj);
+        }
+    } else if (target === 'mouse-pointer') {
+        if (choice === 'sprites') {
+            return this.spritesAtPoint(world.hand.position(), stage);
+        } else {
+            clr = world.getGlobalPixelColor(world.hand.position());
+        }
+    } else if (target instanceof List) {
+        point = new Point(
+            target.at(1) * stage.scale + stage.center().x,
+            stage.center().y - (target.at(2) * stage.scale)
+        );
+        if (choice === 'sprites') {
+            return this.spritesAtPoint(point, stage);
+        } else {
+            clr = world.getGlobalPixelColor(point);
+        }
+    } else {
+        if (!target) {return; }
+        thatObj = this.getOtherObject(target, thisObj, stage);
+        if (thatObj) {
+            if (choice === 'sprites') {
+                point = thatObj instanceof SpriteMorph ?
+                    thatObj.rotationCenter() : thatObj.center();
+                return this.spritesAtPoint(point, stage);
+            } else {
+                clr = this.colorAtSprite(thatObj);
+            }
+        } else {
+            return;
+        }
+
+    }
+
+    if (idx < 0 || idx > 3) {
+        return;
+    }
+    if (idx === 3) {
+        return (1 - clr.a) * 100;
+    }
+    return clr.hsv()[idx] * 100;
+};
+
+Process.prototype.colorAtSprite = function (sprite) {
+    // private - helper function for aspect of location
+    // answer the color underneath the layer of the sprite's rotation center
+    var point = sprite instanceof SpriteMorph ? sprite.rotationCenter()
+            : sprite.center(),
+        stage = sprite.parentThatIsA(StageMorph),
+        below = stage,
+        found = false,
+        child,
+        i;
+
+    if (!stage) {return new Color(); }
+    for (i = 0; i < stage.children.length; i += 1) {
+        if (!found) {
+            child = stage.children[i];
+            if (child === sprite) {
+                found = true;
+            } else if (child.isVisible &&
+                child.bounds.containsPoint(point) &&
+                !child.isTransparentAt(point)
+            ) {
+                below = child;
+            }
+        }
+    }
+    if (below.bounds.containsPoint(point)) {
+        return below.getPixelColor(point);
+    }
+    return new Color();
+};
+
+Process.prototype.spritesAtPoint = function (point, stage) {
+    // private - helper function for aspect of location
+    // point argument is an absolute (Morphic) point
+    // answer a list of sprites, if any, at the given point
+    // ordered by their layer, i.e. top-layer is last in the list
+    return new List(
+        stage.children.filter(function (morph) {
+            return morph instanceof SpriteMorph &&
+                morph.isVisible &&
+                morph.bounds.containsPoint(point) &&
+                !morph.isTransparentAt(point);
+        })
+    );
 };
 
 Process.prototype.reportRelationTo = function (relation, name) {
@@ -3414,6 +3582,26 @@ Process.prototype.reportGet = function (query) {
         }
     }
     return '';
+};
+
+Process.prototype.reportObject = function (name) {
+    var thisObj = this.blockReceiver(),
+        thatObj,
+        stage;
+
+    if (thisObj) {
+        this.assertAlive(thisObj);
+        stage = thisObj.parentThatIsA(StageMorph);
+        if (stage.name === name) {
+            thatObj = stage;
+        } else {
+            thatObj = this.getOtherObject(name, thisObj, stage);
+        }
+        if (thatObj) {
+            this.assertAlive(thatObj);
+        }
+        return thatObj;
+    }
 };
 
 Process.prototype.doSet = function (attribute, value) {

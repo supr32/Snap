@@ -6,7 +6,7 @@
 
     written by Jens Mönig
 
-    Copyright (C) 2018 by Jens Mönig
+    Copyright (C) 2019 by Jens Mönig
 
     This file is part of Snap!.
 
@@ -185,7 +185,7 @@ SnapTranslator.dict.de = {
     'translator_e-mail':
         'jens@moenig.org, jadga.huegle@sap.com', // optional
     'last_changed':
-        '2018-11-06', // this, too, will appear in the Translators tab
+        '2019-01-28', // this, too, will appear in the Translators tab
 
     // GUI
     // control bar:
@@ -367,8 +367,12 @@ SnapTranslator.dict.de = {
         'anzeigen',
     'hide':
         'verstecken',
-    'go to front':
-        'komme nach vorn',
+    'go to %layer layer':
+        'gehe nach %layer',
+    'front':
+        'vorn',
+    'back':
+        'hinten',
     'go back %n layers':
         'gehe %n Ebenen zur\u00fcck',
 
@@ -418,14 +422,16 @@ SnapTranslator.dict.de = {
         'Stift hoch',
     'set pen color to %clr':
         'setze Stiftfarbe auf %clr',
-    'change pen color by %n':
-        '\u00e4ndere Stiftfarbe um %n',
-    'set pen color to %n':
-        'setze Stiftfarbe auf %n',
-    'change pen shade by %n':
-        '\u00e4ndere Farbst\u00e4rke um %n',
-    'set pen shade to %n':
-        'setze Farbst\u00e4rke auf %n',
+    'set background color to %clr':
+        'setze Hintergrundfarbe auf %clr',
+    'change pen %hsva by %n':
+        '\u00e4ndere Stift %hsva um %n',
+    'change background %hsva by %n':
+        '\u00e4ndere Hintergrund %hsva um %n',
+    'set pen %hsva to %n':
+        'setze Stift %hsva auf %n',
+    'set background %hsva to %n':
+        'setze Hintergrund %hsva auf %n',
     'change pen size by %n':
         '\u00e4ndere Stiftdicke um %n',
     'set pen size to %n':
@@ -476,12 +482,12 @@ SnapTranslator.dict.de = {
         'warte %n Sek.',
     'wait until %b':
         'warte bis %b',
-    'forever %c':
-        'fortlaufend %c',
-    'repeat %n %c':
-        'wiederhole %n mal %c',
-    'repeat until %b %c':
-        'wiederhole bis %b %c',
+    'forever %loop':
+        'fortlaufend %loop',
+    'repeat %n %loop':
+        'wiederhole %n mal %loop',
+    'repeat until %b %loop':
+        'wiederhole bis %b %loop',
     'if %b %c':
         'falls %b %c',
     'if %b %c else %c':
@@ -556,6 +562,10 @@ SnapTranslator.dict.de = {
         '%rel zu %dst',
     'distance':
     	'Entfernung',
+    '%asp at %loc' :
+        '%asp bei %loc',
+    'sprites' :
+        'Objekte',
     'reset timer':
         'starte Stoppuhr neu',
     'timer':
@@ -564,6 +574,8 @@ SnapTranslator.dict.de = {
         '%att von %spr',
     'my %get':
         'Attribut %get',
+    'object %spr':
+        'Objekt %spr',
     'http:// %s':
         'http:// %s',
     'turbo mode?':
@@ -1123,6 +1135,8 @@ SnapTranslator.dict.de = {
         'Listenansicht...',
     'table view...':
         'tabellarische Ansicht...',
+    'Table view':
+        'Tabelle',
     'open in dialog...':
         'in neuem Fenster \u00f6ffnen',
     'reset columns':
@@ -1479,9 +1493,11 @@ SnapTranslator.dict.de = {
         'neuen Klang aufnehmen',
     
 
-    // graphical effects
+    // graphical effects, pen color
     'color':
         'Farbe',
+    'hue':
+        'Farbton',
     'fisheye':
         'Fischauge',
     'whirl':
@@ -1494,6 +1510,8 @@ SnapTranslator.dict.de = {
         'Sättigung',
     'brightness':
         'Helligeit',
+    'transparency':
+        'Transparenz',
     'ghost':
         'Durchsichtigkeit',
     'negative':

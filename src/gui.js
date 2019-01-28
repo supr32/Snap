@@ -9,7 +9,7 @@
     written by Jens Mönig
     jens@moenig.org
 
-    Copyright (C) 2018 by Jens Mönig
+    Copyright (C) 2019 by Jens Mönig
 
     This file is part of Snap!.
 
@@ -60,13 +60,13 @@
 
 /*global modules, Morph, SpriteMorph, SyntaxElementMorph, Color, Cloud,
 ListWatcherMorph, TextMorph, newCanvas, useBlurredShadows, VariableFrame,
-StringMorph, Point, MenuMorph, morphicVersion, DialogBoxMorph,
+StringMorph, Point, MenuMorph, morphicVersion, DialogBoxMorph,normalizeCanvas,
 ToggleButtonMorph, contains, ScrollFrameMorph, StageMorph, PushButtonMorph,
 InputFieldMorph, FrameMorph, Process, nop, SnapSerializer, ListMorph, detect,
 AlignmentMorph, TabMorph, Costume, MorphicPreferences, Sound, BlockMorph,
 ToggleMorph, InputSlotDialogMorph, ScriptsMorph, isNil, SymbolMorph,
 BlockExportDialogMorph, BlockImportDialogMorph, SnapTranslator, localize,
-List, ArgMorph, Uint8Array, HandleMorph, SVG_Costume,
+List, ArgMorph, Uint8Array, HandleMorph, SVG_Costume, TableDialogMorph,
 fontHeight, sb, CommentMorph, CommandBlockMorph, BooleanSlotMorph,
 BlockLabelPlaceHolderMorph, Audio, SpeechBubbleMorph, ScriptFocusMorph,
 XML_Element, WatcherMorph, BlockRemovalDialogMorph, saveAs, TableMorph,
@@ -75,7 +75,7 @@ isRetinaSupported, SliderMorph, Animation, BoxMorph, MediaRecorder*/
 
 // Global stuff ////////////////////////////////////////////////////////
 
-modules.gui = '2018-November-29';
+modules.gui = '2019-January-28';
 
 // Declarations
 
@@ -1738,6 +1738,7 @@ IDE_Morph.prototype.fixLayout = function (situation) {
     // situation is a string, i.e.
     // 'selectSprite' or 'refreshPalette' or 'tabEditor'
     var padding = this.padding,
+        flag,
         maxPaletteWidth;
 
     Morph.prototype.trackChanges = false;
@@ -1766,19 +1767,22 @@ IDE_Morph.prototype.fixLayout = function (situation) {
             this.stage.setScale(Math.floor(Math.min(
                 this.width() / this.stage.dimensions.x,
                 this.height() / this.stage.dimensions.y
-                ) * 10) / 10);
-
-            this.embedPlayButton.size = Math.floor(Math.min(
-                        this.width(), this.height())) / 3;
+                ) * 100) / 100);
+            flag = this.embedPlayButton.flag;
+            flag.size = Math.floor(Math.min(
+                        this.width(), this.height())) / 5;
+            flag.setWidth(flag.size);
+            flag.setHeight(flag.size);
+            this.embedPlayButton.size = flag.size * 1.6;
             this.embedPlayButton.setWidth(this.embedPlayButton.size);
             this.embedPlayButton.setHeight(this.embedPlayButton.size);
-
             if (this.embedOverlay) {
                 this.embedOverlay.setExtent(this.extent());
             }
-
             this.stage.setCenter(this.center());
-            this.embedPlayButton.setCenter(this.center());
+            this.embedPlayButton.setCenter(this.stage.center());
+            flag.setCenter(this.embedPlayButton.center());
+            flag.setLeft(flag.left() + flag.size * 0.1); // account for slight asymmetry
         } else if (this.isAppMode) {
             this.stage.setScale(Math.floor(Math.min(
                 (this.width() - padding * 2) / this.stage.dimensions.x,
@@ -1969,8 +1973,11 @@ IDE_Morph.prototype.droppedAudio = function (anAudio, name) {
     }
 };
 
-IDE_Morph.prototype.droppedText = function (aString, name) {
-    var lbl = name ? name.split('.')[0] : '';
+IDE_Morph.prototype.droppedText = function (aString, name, fileType) {
+    var lbl = name ? name.split('.')[0] : '',
+        ext = name ? name.slice(name.lastIndexOf('.') + 1).toLowerCase() : '';
+
+    // check for Snap specific files, projects, libraries, sprites, scripts
     if (aString.indexOf('<project') === 0) {
         location.hash = '';
         return this.openProjectString(aString);
@@ -1991,6 +1998,17 @@ IDE_Morph.prototype.droppedText = function (aString, name) {
     if (aString.indexOf('<script') === 0) {
         return this.openScriptString(aString);
     }
+
+    // check for encoded data-sets, CSV, JSON
+    if (fileType.indexOf('csv') !== -1 || ext === 'csv') {
+        return this.openDataString(aString, lbl, 'csv');
+    }
+    if (fileType.indexOf('json') !== -1 || ext === 'json') {
+        return this.openDataString(aString, lbl, 'json');
+    }
+
+    // import as plain text data
+    this.openDataString(aString, lbl, 'text');
 };
 
 IDE_Morph.prototype.droppedBinary = function (anArrayBuffer, name) {
@@ -2027,6 +2045,10 @@ IDE_Morph.prototype.refreshPalette = function (shouldIgnorePosition) {
     var oldTop = this.palette.contents.top();
 
     this.createPalette();
+    if (this.isAppMode) {
+        this.palette.hide();
+        return;
+    }
     this.fixLayout('refreshPalette');
     if (!shouldIgnorePosition) {
         this.palette.contents.setTop(oldTop);
@@ -2316,8 +2338,10 @@ IDE_Morph.prototype.addNewSprite = function () {
     this.stage.add(sprite);
 
     // randomize sprite properties
-    sprite.setHue(rnd.call(this, 0, 100));
-    sprite.setBrightness(rnd.call(this, 50, 100));
+    sprite.setColorComponentHSVA(0, rnd.call(this, 0, 100));
+    sprite.setColorComponentHSVA(1, 100);
+    sprite.setColorComponentHSVA(2, rnd.call(this, 50, 100));
+
     sprite.setXPosition(rnd.call(this, -220, 220));
     sprite.setYPosition(rnd.call(this, -160, 160));
 
@@ -3552,7 +3576,7 @@ IDE_Morph.prototype.aboutSnap = function () {
         module, btn1, btn2, btn3, btn4, licenseBtn, translatorsBtn,
         world = this.world();
 
-    aboutTxt = 'Snap! 4.2.2.9\nBuild Your Own Blocks\n\n'
+    aboutTxt = 'Snap! 5 - Beta -\nBuild Your Own Blocks\n\n'
         + 'Copyright \u24B8 2018 Jens M\u00F6nig and '
         + 'Brian Harvey\n'
         + 'jens@moenig.org, bh@cs.berkeley.edu\n\n'
@@ -4357,7 +4381,8 @@ IDE_Morph.prototype.rawOpenCloudDataString = function (str) {
             this.serializer.openProject(
                 this.serializer.loadProjectModel(
                     model.childNamed('project'),
-                    this
+                    this,
+                    model.attributes.remixID
                 ),
                 this
             );
@@ -4370,7 +4395,8 @@ IDE_Morph.prototype.rawOpenCloudDataString = function (str) {
         this.serializer.openProject(
             this.serializer.loadProjectModel(
                 model.childNamed('project'),
-                this
+                this,
+                model.attributes.remixID
             ),
             this
         );
@@ -4516,6 +4542,68 @@ IDE_Morph.prototype.rawOpenScriptString = function (str) {
     );
 };
 
+IDE_Morph.prototype.openDataString = function (str, name, type) {
+    var msg,
+        myself = this;
+    this.nextSteps([
+        function () {
+            msg = myself.showMessage('Opening data...');
+        },
+        function () {nop(); }, // yield (bug in Chrome)
+        function () {
+            myself.rawOpenDataString(str, name, type);
+        },
+        function () {
+            msg.destroy();
+        }
+    ]);
+};
+
+IDE_Morph.prototype.rawOpenDataString = function (str, name, type) {
+    var data, vName, dlg,
+        globals = this.currentSprite.globalVariables();
+
+    function newVarName(name) {
+        var existing = globals.names(),
+            ix = name.indexOf('\('),
+            stem = (ix < 0) ? name : name.substring(0, ix),
+            count = 1,
+            newName = stem;
+        while (contains(existing, newName)) {
+            count += 1;
+            newName = stem + '(' + count + ')';
+        }
+        return newName;
+    }
+
+    switch (type) {
+        case 'csv':
+            data = Process.prototype.parseCSV(str);
+            break;
+        case 'json':
+            data = Process.prototype.parseJSON(str);
+            break;
+        default: // assume plain text
+            data = str;
+    }
+    vName = newVarName(name || 'data');
+    globals.addVar(vName);
+    globals.setVar(vName, data);
+    this.currentSprite.toggleVariableWatcher(vName, true); // global
+    this.flushBlocksCache('variables');
+    this.currentCategory = 'variables';
+    this.categories.children.forEach(function (each) {
+        each.refresh();
+    });
+    this.refreshPalette(true);
+    if (data instanceof List) {
+        dlg = new TableDialogMorph(data);
+        dlg.labelString = localize(dlg.labelString) + ': ' + vName;
+        dlg.createLabel();
+        dlg.popUp(this.world());
+    }
+};
+
 IDE_Morph.prototype.openProject = function (name) {
     var str;
     if (name) {
@@ -4614,6 +4702,11 @@ IDE_Morph.prototype.saveCanvasAs = function (canvas, fileName) {
     // }
 
     this.saveFileAs(canvas.toDataURL(), 'image/png', fileName);
+};
+
+IDE_Morph.prototype.saveAudioAs = function (audio, fileName) {
+    // Export a Sound object as a WAV file
+    this.saveFileAs(audio.src, 'audio/wav', fileName);
 };
 
 IDE_Morph.prototype.saveXMLAs = function(xml, fileName) {
@@ -4809,23 +4902,31 @@ IDE_Morph.prototype.toggleSliderExecute = function () {
 
 IDE_Morph.prototype.setEmbedMode = function () {
     var myself = this;
+
+    this.isEmbedMode = true;
+    this.appModeColor = new Color(243,238,235);
     this.embedOverlay = new Morph();
     this.embedOverlay.color = new Color(128, 128, 128);
     this.embedOverlay.alpha = 0.5;
 
-    this.embedPlayButton = new SymbolMorph('pointRight');
-    this.embedPlayButton.color = new Color(128, 255, 128);
-
+    this.embedPlayButton = new SymbolMorph('circleSolid');
+    this.embedPlayButton.color = new Color(64, 128, 64);
+    this.embedPlayButton.alpha = 0.75;
+    this.embedPlayButton.flag = new SymbolMorph('flag');
+    this.embedPlayButton.flag.color = new Color(128, 255, 128);
+    this.embedPlayButton.flag.alpha = 0.75;
+    this.embedPlayButton.add(this.embedPlayButton.flag);
     this.embedPlayButton.mouseClickLeft = function () {
         myself.runScripts();
         myself.embedOverlay.destroy();
         this.destroy();
     };
 
-    this.isEmbedMode = true;
     this.controlBar.hide();
+
     this.add(this.embedOverlay);
     this.add(this.embedPlayButton);
+
     this.fixLayout();
 };
 
@@ -5291,7 +5392,7 @@ IDE_Morph.prototype.initializeCloud = function () {
                 user.username.toLowerCase(),
                 user.password,
                 user.choice,
-                function (username, isadmin, response) {
+                function (username, role, response) {
                     sessionStorage.username = username;
                     myself.source = 'cloud';
                     if (!isNil(response.days_left)) {
@@ -5487,17 +5588,85 @@ IDE_Morph.prototype.logout = function () {
     );
 };
 
-IDE_Morph.prototype.saveProjectToCloud = function (name) {
-    var myself = this;
-    if (name) {
-        this.showMessage('Saving project\nto the cloud...');
-        this.setProjectName(name);
-        this.cloud.saveProject(
-            this,
-            function () {myself.showMessage('saved.', 2); },
-            this.cloudError()
+IDE_Morph.prototype.buildProjectRequest = function () {
+    var xml = this.serializer.serialize(this.stage),
+        thumbnail = normalizeCanvas(
+            this.stage.thumbnail(
+                SnapSerializer.prototype.thumbnailSize
+        )).toDataURL(),
+        body;
+
+    this.serializer.isCollectingMedia = true;
+    body = {
+        notes: this.projectNotes,
+        xml: xml,
+        media: this.hasChangedMedia ?
+            this.serializer.mediaXML(this.projectName) : null,
+        thumbnail: thumbnail,
+        remixID: this.stage.remixID
+    };
+    this.serializer.isCollectingMedia = false;
+    this.serializer.flushMedia();
+
+    return body;
+};
+
+IDE_Morph.prototype.verifyProject = function (body) {
+    // Ensure the project is less than 10MB and serializes correctly.
+    var encodedBody = JSON.stringify(body);
+    if (encodedBody.length > Cloud.MAX_FILE_SIZE) {
+        new DialogBoxMorph().inform(
+            'Snap!Cloud - Cannot Save Project',
+            'The media inside this project exceeds 10 MB.\n' +
+                'Please reduce the size of costumes or sounds.\n',
+            this.world(),
+            this.cloudIcon(null, new Color(180, 0, 0))
         );
+        return false;
     }
+
+    // console.log(encodedBody.length);
+    // check if serialized data can be parsed back again
+    try {
+        this.serializer.parse(body.xml);
+    } catch (err) {
+        this.showMessage('Serialization of program data failed:\n' + err);
+        return false;
+    }
+    if (body.media !== null) {
+        try {
+            this.serializer.parse(body.media);
+        } catch (err) {
+            this.showMessage('Serialization of media failed:\n' + err);
+            return false;
+        }
+    }
+    this.serializer.isCollectingMedia = false;
+    this.serializer.flushMedia();
+
+    return encodedBody.length;
+};
+
+IDE_Morph.prototype.saveProjectToCloud = function (name) {
+    var myself = this, projectBody, projectSize;
+
+    if (name) {
+        this.setProjectName(name);
+    }
+
+    this.showMessage('Saving project\nto the cloud...');
+    projectBody = this.buildProjectRequest();
+    projectSize = this.verifyProject(projectBody);
+    if (!projectSize) {return; } // Invalid Projects don't return anything.
+    this.showMessage(
+        'Uploading ' + Math.round(projectSize / 1024) + ' KB...'
+    );
+    this.cloud.saveProject(
+        this.projectName,
+        projectBody,
+        function () {myself.showMessage('saved.', 2); },
+        this.cloudError()
+    );
 };
 
 IDE_Morph.prototype.exportProjectMedia = function (name) {
@@ -5708,11 +5877,11 @@ IDE_Morph.prototype.getURL = function (url, callback, responseType) {
         async = callback instanceof Function,
         myself = this,
         rsp;
-	if (async) {
-    	request.responseType = responseType || 'text';
+    if (async) {
+        request.responseType = responseType || 'text';
     }
     rsp = (!async || request.responseType === 'text') ? 'responseText'
-    	: 'response';
+        : 'response';
     try {
         request.open('GET', url, async);
         if (async) {
@@ -6531,16 +6700,8 @@ ProjectDialogMorph.prototype.saveProject = function () {
 };
 
 ProjectDialogMorph.prototype.saveCloudProject = function () {
-    var myself = this;
-    this.ide.showMessage('Saving project\nto the cloud...');
-    this.ide.cloud.saveProject(
-        this.ide,
-        function () {
-            myself.ide.source = 'cloud';
-            myself.ide.showMessage('saved.', 2);
-        },
-        this.ide.cloudError()
-    );
+    this.ide.source = 'cloud';
+    this.ide.saveProjectToCloud();
     this.destroy();
 };
 
@@ -8148,7 +8309,7 @@ CostumeIconMorph.prototype.disinherit = function () {
         idx = this.parent.children.indexOf(this);
     if (wardrobe.sprite.inheritsAttribute('costumes')) {
         wardrobe.sprite.shadowAttribute('costumes');
-        this.object = wardrobe.sprite.costumes.at(idx - 2);
+        this.object = wardrobe.sprite.costumes.at(idx - 3);
     }
 };
 
@@ -8578,7 +8739,6 @@ WardrobeMorph.prototype.reactToDropOf = function (icon) {
     var idx = 0,
         costume = icon.object,
         top = icon.top();
-
     icon.destroy();
     this.contents.children.forEach(function (item) {
         if (item instanceof CostumeIconMorph && item.top() < top - 4) {
@@ -8756,6 +8916,8 @@ SoundIconMorph.prototype.userMenu = function () {
     if (!(this.object instanceof Sound)) { return null; }
     menu.addItem('rename', 'renameSound');
     menu.addItem('delete', 'removeSound');
+    menu.addLine();
+    menu.addItem('export', 'exportSound');
     return menu;
 };
 
@@ -8789,6 +8951,11 @@ SoundIconMorph.prototype.removeSound = function () {
     jukebox.removeSound(idx);
 };
 
+SoundIconMorph.prototype.exportSound = function () {
+    var ide = this.parentThatIsA(IDE_Morph);
+    ide.saveAudioAs(this.object.audio, this.object.name);
+};
+
 SoundIconMorph.prototype.createBackgrounds
     = SpriteIconMorph.prototype.createBackgrounds;
 
@@ -8802,7 +8969,7 @@ SoundIconMorph.prototype.disinherit = function () {
         idx = this.parent.children.indexOf(this);
     if (jukebox.sprite.inheritsAttribute('sounds')) {
         jukebox.sprite.shadowAttribute('sounds');
-        this.object = jukebox.sprite.sounds.at(idx);
+        this.object = jukebox.sprite.sounds.at(idx - 1);
     }
 };
 
@@ -8955,13 +9122,13 @@ JukeboxMorph.prototype.reactToDropOf = function (icon) {
 
     icon.destroy();
     this.contents.children.forEach(function (item) {
-        if (item.top() < top - 4) {
+        if (item instanceof SoundIconMorph && item.top() < top - 4) {
             idx += 1;
         }
     });
 
     this.sprite.shadowAttribute('sounds');
-    this.sprite.sounds.add(costume, idx);
+    this.sprite.sounds.add(costume, idx + 1);
     this.updateList();
 };
 
