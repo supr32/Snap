@@ -6,7 +6,7 @@
 
     written by Jens Mönig
 
-    Copyright (C) 2018 by Jens Mönig
+    Copyright (C) 2019 by Jens Mönig
 
     This file is part of Snap!.
 
@@ -42,7 +42,7 @@
 
 /*global modules, contains*/
 
-modules.locale = '2018-November-06';
+modules.locale = '2019-January-28';
 
 // Global stuff
 
@@ -160,7 +160,7 @@ SnapTranslator.dict.de = {
     'translator_e-mail':
         'jens@moenig.org, jadga.huegle@sap.com',
     'last_changed':
-        '2018-11-06'
+        '2019-01-28'
 };
 
 SnapTranslator.dict.it = {
@@ -237,7 +237,7 @@ SnapTranslator.dict.zh_CN = {
     'translator_e-mail':
         'ubertao@qq.com/djh@rhjxx.cn',
     'last_changed':
-        '2018-01-22'
+        '2019-01-11'
 };
 
 SnapTranslator.dict.eo = {
@@ -354,11 +354,11 @@ SnapTranslator.dict.el = {
     'language_name':
         'Ελληνικά',
     'language_translator':
-        'Ino Samaras',
+        'Ino Samaras , Alexandros Prekates',
     'translator_e-mail':
-        'ino.samaras@berkeley.edu',
+        'ino.samaras@berkeley.edu , aprekates@sch.gr',
     'last_changed':
-        '2018-01-19'
+        '2019-01-28'
 };
 
 SnapTranslator.dict.ca = {
@@ -475,11 +475,11 @@ SnapTranslator.dict.tr = {
     'language_name':
         'Türkçe',
     'language_translator':
-        'Hakan Atas',
+        'Hakan Atas - www.3drobolab.com, Turgut Güneysu',
     'translator_e-mail':
-        'hakanatas@gmail.com',
+        'hakanatas@gmail.com, tguneysu@msn.com, mustafaipekbayrak@gmail.com',
     'last_changed':
-        '2018-01-22'
+        '2019-01-22'
 };
 
 SnapTranslator.dict.hu = {
@@ -552,11 +552,11 @@ SnapTranslator.dict.id = {
     'language_name':
         'Bahasa Indonesia',
     'language_translator':
-        'Alexander Raphael Liu',
+        'Alexander Raphael Liu, Emmanuella Rumanti',
     'translator_e-mail':
         'raphaxander@gmail.com',
     'last_changed':
-        '2016-5-2'
+        '2019-01-21'
 };
 
 SnapTranslator.dict.et = {

@@ -1,5 +1,153 @@
 # Snap<em>!</em> (BYOB) History
 
+## in development
+
+* New Features:
+    * export 1- /2- dimensional lists with atomic data as CSV
+    * export n-dimensional lists with atomic data as JSON
+    * import CSV, Text, or JSON via drag & drop
+    * parse JSON using the SPLIT reporter
+    * new "aspect AT location" reporter in Sensing category for sniffing colors and sprites
+    * new blocks for setting and changing the stage's background color
+    * new "object" reporter in the Sensing category for getting a sprite by its name
+    * new "string" library, thanks, Brian
+    * added "neg" selector to monadic function reporter in "Operators" category
+    * enhances support for embedding Snap in other website, thanks, Bernat!
+    * export sounds
+* Notable Changes:
+    * added third hsv dimension to pen colors, changed SET and CHANGE pen blocks
+    * added transparency (alpha) to pen colors
+    * new drop-down options for sprite-layer control ("GO TO front/back")
+    * "loop arrow" symbol for primitive loops, also available for custom blocks
+    * optimized in-project storage of atomic-data lists (more efficient, less space) 
+    * remove all clones when the Green Flag is clicked
+* Notable Fixes:
+    * "relabel" blocks with translated drop-down choices
+    * transforming arrayed to linked lists without loosing the last element
+    * using "inherit" no longer un-hides the palette in presentation mode
+* Translation Updates:
+    * Chinese, thanks, Simon!
+    * Turkish, thanks, Turgut!
+    * Indonesian, thanks, Emanuella!
+    * Greek, thanks, Alexandros!
+    * German
+
+### 2019-01-28
+* Threads, Objects: new "object" reporter in the Sensing category
+* Greek translation update, thanks, Alexandros!
+* German translation update
+* pushed version to "Beta"
+
+### 2019-01-25
+* Threads: tweaked CSV-parser to handle \r-only record delimiters
+* Cloud, GUI: Decouple cloud access from GUI, thanks, Michael and Bernat!
+* GUI: added ability to export sounds
+
+### 2019-01-24
+* Turkish translation update, thanks, Turgut!
+* updated audio-comp library blocks with new loop-arrow symbols
+
+### 2019-01-23
+* Objects, Threads: new blocks for setting and changing the stage's background color
+* Store: save stage's background color in project
+* updated German translation
+* Blocks: Tweaked rendering of C-shaped slots in predicates 
+* updated cases library blocks with new loop-arrow symbols
+* updated animation library blocks with new loop-arrow symbols, tweaked FOR block
+
+### 2019-01-22
+* Objects: Remove all clones when the Green Flag is clicked
+* Blocks: adjust label row below C-Slot to accomodate loop icon, if any
+* updated iteration-composition library blocks with new loop-arrow symbols
+* updated list-utilities library blocks with new loop-arrow symbols
+* Threads: cleaned up CSV parser
+* Objects: fixed pen hsv-cache invalidation for clones
+
+### 2019-01-21
+* let users make C-shape slots with loop arrow symbols. Sigh.
+* updated internal "for each" primitive block with new arrow symbol. Sigh. 
+* updated Indonesian translation, thanks, Emmanuella Rumanti 
+* updated FOR and FOREACH in tools library with new new loop-arrow symbols
+
+### 2019-01-19
+* fixed "Staatsgalerie bug" - relabel did not restore drop-down choice when localized
+
+### 2019-01-17
+* Greek translation update, thanks, Alexandros Prekates!
+* cloud: user role support, thanks, Bernat
+
+### 2019-01-16
+* suppress 'loop' arrow symbol where label text follow the C-slot in translations
+
+### 2019-01-15
+* updated German translation
+* updated all translations for the new %loop slot
+
+### 2019-01-14
+* Symbols: added 'loop' arrow symbol
+* Blocks, Objects, Store: added 'loop' symbol to primitive loop blocks
+* pushed dev version to 5.0
+
+### 2019-01-12
+* Threads: try to identify Brian's problem with parsing a CSV
+
+### 2019-01-11
+* Chinese translation update, thanks, Simon!
+* Turkish translation update, thanks, Turgut Guneysu!
+* new string library, thanks, Brian!
+* project renaming and remixing support, thanks, Bernat!
+* pushed dev version to 4.3
+
+### 2019-01-10
+* Morphic: recognize data sets in dropped text files (csv, json)
+* Lists: updated list documentation, enabled table support by default
+* GUI: import & examine data sets and text files via drag'n'drop or "import" menu
+* updated German translation
+
+### 2019-01-09
+* Store: tweaked format for serializing atomic data lists
+* Morphic: added option to include alpha in color comparison
+* Objects: fixed "set pen color (color picker)" to observe, i.e. overwrite transparency
+* Lists, Threads, Objects: added (Bernat's) JSON parser to SPLIT block
+* Lists, Objects: added "export as JSON" capability
+* Lists, Objects: automatically parse json files on import 
+* Lists: prevent Booleans in CSVs
+
+### 2019-01-08
+* Objects: automatically parse csv files on import, experimental "raw data" and "parse" ops
+* Lists: fixed an off-by-one error in becomeLinked()
+* Store: optimized serialization of lists with atomic data in project files
+* Blocks, Objects, Threads: renamed "color" to "hue" in pen-blocks and in location sensor
+* updated German translation
+
+### 2019-01-07
+* Lists, Objects: directly export and import lists as csv files, under construction
+
+### 2019-01-04
+* Objects, Blocks, Threads: new feature/block: sense colors and sprites anywhere
+* updated German translation 
+* Objects: fixed pixel color sensing for stage pen trails 
+
+### 2019-01-02
+* Objects, Blocks, Threads, GUI, Store: added third color dimension and transparency to pen
+* renamed help screens for "setHue" to "setPenHSVA" and "changeHue" to "changePenHSVA"
+* pushed dev version to 4.2.3
+* updated German translation
+
+### 2019-01-01
+* Morphic: added HSL color conversion support
+* Morphic: fixed glitch in WorldMorph >> getGlobalPixelColor
+
+### 2018-12-28
+* Blocks, Threads: added 'neg' selector to monad operator dropdown
+* Blocks, Objects, Threads: added "front/back" options to "go to front" layer primitive
+* updated German translation
+* renamed help screen for layer primitive
+* fixed #2294
+
+### 2018-12-07
+* GUI: fixed #2284 (executing "inherit" should not un-hide palette in presentation mode)
+
 ## v4.2.2.9
 ### 2018-11-29
 * GUI: prepared release
