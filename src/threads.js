@@ -1962,6 +1962,27 @@ Process.prototype.reportIsFastTracking = function () {
     return false;
 };
 
+Process.prototype.doSetGlobalFlag = function (name, bool) {
+    name = this.inputOption(name);
+    this.assertType(bool, 'Boolean');
+    if (name === 'turbo mode') {
+        this.doSetFastTracking(bool);
+    }
+    if (name === 'flat line ends') {
+        SpriteMorph.prototype.useFlatLineEnds = bool;
+    }
+};
+
+Process.prototype.reportGlobalFlag = function (name) {
+    name = this.inputOption(name);
+    if (name === 'turbo mode') {
+        return this.reportIsFastTracking();
+    }
+    if (name === 'flat line ends') {
+        return SpriteMorph.prototype.useFlatLineEnds;
+    }
+};
+
 Process.prototype.doSetFastTracking = function (bool) {
     var ide;
     if (!this.reportIsA(bool, 'Boolean')) {
@@ -3563,6 +3584,10 @@ Process.prototype.reportGet = function (query) {
             );
         case 'dangling?':
             return !thisObj.rotatesWithAnchor;
+        case 'draggable?':
+            return thisObj.isDraggable;
+        case 'rotation style':
+            return thisObj.rotationStyle || 0;
         case 'rotation x':
             return thisObj.xPosition();
         case 'rotation y':
@@ -3606,7 +3631,7 @@ Process.prototype.reportObject = function (name) {
 
 Process.prototype.doSet = function (attribute, value) {
     // experimental, manipulate sprites' attributes
-    var name, rcvr;
+    var name, rcvr, ide;
     rcvr = this.blockReceiver();
     this.assertAlive(rcvr);
     if (!(attribute instanceof Context || attribute instanceof Array) ||
@@ -3657,6 +3682,43 @@ Process.prototype.doSet = function (attribute, value) {
         this.assertType(rcvr, 'sprite');
         this.assertType(value, 'Boolean');
         rcvr.rotatesWithAnchor = !value;
+        rcvr.version = Date.now();
+        break;
+    case 'draggable?':
+        this.assertType(rcvr, 'sprite');
+        this.assertType(value, 'Boolean');
+        rcvr.isDraggable = value;
+        // update padlock symbol in the IDE:
+        ide = rcvr.parentThatIsA(IDE_Morph);
+        if (ide) {
+            ide.spriteBar.children.forEach(function (each) {
+                if (each.refresh) {
+                    each.refresh();
+                }
+            });
+        }
+        rcvr.version = Date.now();
+        break;
+    case 'rotation style':
+        this.assertType(rcvr, 'sprite');
+        this.assertType(+value, 'number');
+        if (!contains([0, 1, 2], +value)) {
+            return; // maybe throw an error msg
+        }
+        rcvr.rotationStyle = +value;
+        // redraw sprite:
+        rcvr.changed();
+        rcvr.drawNew();
+        rcvr.changed();
+        // update padlock symbol in the IDE:
+        ide = rcvr.parentThatIsA(IDE_Morph);
+        if (ide) {
+            ide.spriteBar.children.forEach(function (each) {
+                if (each.refresh) {
+                    each.refresh();
+                }
+            });
+        }
         rcvr.version = Date.now();
         break;
     case 'rotation x':

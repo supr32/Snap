@@ -83,7 +83,7 @@ BlockEditorMorph, BlockDialogMorph, PrototypeHatBlockMorph, localize,
 TableMorph, TableFrameMorph, normalizeCanvas, BooleanSlotMorph, HandleMorph,
 AlignmentMorph, Process, XML_Element, VectorPaintEditorMorph*/
 
-modules.objects = '2019-January-28';
+modules.objects = '2019-February-18';
 
 var SpriteMorph;
 var StageMorph;
@@ -858,15 +858,17 @@ SpriteMorph.prototype.initBlocks = function () {
             spec: 'url %s',
             defaults: ['snap.berkeley.edu']
         },
-        reportIsFastTracking: {
-            type: 'predicate',
-            category: 'sensing',
-            spec: 'turbo mode?'
-        },
-        doSetFastTracking: {
+        doSetGlobalFlag: {
             type: 'command',
             category: 'sensing',
-            spec: 'set turbo mode to %b'
+            spec: 'set %setting to %b',
+            defaults: [['turbo mode']]
+        },
+        reportGlobalFlag: {
+            type: 'predicate',
+            category: 'sensing',
+            spec: 'is %setting on?',
+            defaults: [['turbo mode']]
         },
         reportDate: {
             type: 'reporter',
@@ -1275,6 +1277,16 @@ SpriteMorph.prototype.initBlockMigrations = function () {
         changeBrightness: {
             selector: 'changePenHSVA',
             inputs: [['brightness']],
+            offset: 1
+        },
+        reportIsFastTracking: {
+            selector: 'reportGlobalFlag',
+            inputs: [['turbo mode']],
+            offset: 1
+        },
+        doSetFastTracking: {
+            selector: 'doSetGlobalFlag',
+            inputs: [['turbo mode']],
             offset: 1
         }
     };
@@ -2038,8 +2050,8 @@ SpriteMorph.prototype.blockTemplates = function (category) {
 
         blocks.push(block('reportURL'));
         blocks.push('-');
-        blocks.push(block('reportIsFastTracking'));
-        blocks.push(block('doSetFastTracking'));
+        blocks.push(block('reportGlobalFlag'));
+        blocks.push(block('doSetGlobalFlag'));
         blocks.push('-');
         blocks.push(block('reportDate'));
 
@@ -2959,7 +2971,7 @@ SpriteMorph.prototype.reporterize = function (expressionString) {
                 inps[0].setContents([key]);
                 off = 0;
             }
-        } else { // diadic
+        } else { // dyadic
             block = SpriteMorph.prototype.blockForSelector(selectors[key]);
             inps = block.inputs();
         }
@@ -3194,7 +3206,9 @@ SpriteMorph.prototype.reportSounds = function () {
 
 SpriteMorph.prototype.userMenu = function () {
     var ide = this.parentThatIsA(IDE_Morph),
-        menu = new MenuMorph(this);
+        menu = new MenuMorph(this),
+        allParts,
+        anchors;
 
     if (ide && ide.isAppMode) {
         // menu.addItem('help', 'nop');
@@ -3234,11 +3248,34 @@ SpriteMorph.prototype.userMenu = function () {
             localize('detach from') + ' ' + this.anchor.name,
             'detachFromAnchor'
         );
+    } else {
+        allParts = this.allParts();
+        anchors = this.parent.children.filter(function (morph) {
+            return morph instanceof SpriteMorph &&
+                !contains(allParts, morph);
+        });
+        if (anchors.length) {
+            menu.addMenu('stick to', this.anchorsMenu(anchors));
+        }
     }
     if (this.parts.length) {
         menu.addItem('detach all parts', 'detachAllParts');
     }
     menu.addItem("export...", 'exportSprite');
+    return menu;
+};
+
+SpriteMorph.prototype.anchorsMenu = function (targets) {
+    var menu = new MenuMorph(this.attachTo, null, this);
+    targets.forEach(function (sprite) {
+        menu.addItem(
+            [
+                sprite.thumbnail(new Point(24, 24)),
+                sprite.name,
+            ],
+            sprite
+        );
+    });
     return menu;
 };
 
@@ -5975,6 +6012,10 @@ SpriteMorph.prototype.booleanMorph = function (bool) {
     simulate Morphic trees
 */
 
+SpriteMorph.prototype.attachTo = function (aSprite) {
+    aSprite.attachPart(this);
+};
+
 SpriteMorph.prototype.attachPart = function (aSprite) {
     var v = Date.now();
     if (aSprite.anchor) {
@@ -7251,8 +7292,8 @@ StageMorph.prototype.blockTemplates = function (category) {
 
         blocks.push(block('reportURL'));
         blocks.push('-');
-        blocks.push(block('reportIsFastTracking'));
-        blocks.push(block('doSetFastTracking'));
+        blocks.push(block('reportGlobalFlag'));
+        blocks.push(block('doSetGlobalFlag'));
         blocks.push('-');
         blocks.push(block('reportDate'));
 

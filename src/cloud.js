@@ -52,6 +52,7 @@ Cloud.prototype.init = function () {
     this.username = null;
 };
 
+//SnapCloud = new Cloud('http://cloud.snap.local');
 // Projects larger than this are rejected.
 Cloud.MAX_FILE_SIZE = 10 * 1024 * 1024;
 
