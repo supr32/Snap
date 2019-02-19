@@ -10,9 +10,14 @@
     * new "aspect AT location" reporter in Sensing category for sniffing colors and sprites
     * new blocks for setting and changing the stage's background color
     * new "object" reporter in the Sensing category for getting a sprite by its name
+    * blocks for changing and querying the "flat line ends" setting 
+    * selectors for changing and querying "draggable" and "rotation style" settings
+    * special context-aware drop-downs for custom blocks
+    * new "stick to" submenu in the sprite context menu where applicable
+    * multi-line and monospaced "code" input slots for custom blocks
     * new "string" library, thanks, Brian
     * added "neg" selector to monadic function reporter in "Operators" category
-    * enhances support for embedding Snap in other website, thanks, Bernat!
+    * enhanced support for embedding Snap in other website, thanks, Bernat!
     * export sounds
 * Notable Changes:
     * added third hsv dimension to pen colors, changed SET and CHANGE pen blocks
@@ -21,10 +26,13 @@
     * "loop arrow" symbol for primitive loops, also available for custom blocks
     * optimized in-project storage of atomic-data lists (more efficient, less space) 
     * remove all clones when the Green Flag is clicked
+    * adjust bottom of STOP block to reflect the menu selection (show / hide bottom notch) 
+    * enable dropping commands into all rings
 * Notable Fixes:
     * "relabel" blocks with translated drop-down choices
     * transforming arrayed to linked lists without loosing the last element
     * using "inherit" no longer un-hides the palette in presentation mode
+    * relabelling custom blocks with empty numerical input slots no longer fills in zeroes
 * Translation Updates:
     * Chinese, thanks, Simon!
     * Turkish, thanks, Turgut!
@@ -32,8 +40,47 @@
     * Greek, thanks, Alexandros!
     * German
 
+### 2019-02-18
+* Objects: enable sprite nesting via the context menu
+
+### 2019-02-15
+* BYOB: tweaked yesterday's fix...
+* Blocks: fixed a glitch in the custom block help mechanism (show only the prototype)
+
+### 2019-02-14
+* BYOB: keep empty numerical input slots in custom blocks empty when relabelling
+
+### 2019-02-07
+* Store: tweaked loading mechanism to enable command blocks inside reporter rings
+* Objects: tweaked spec for settings getter
+* Blocks: improved dropping command blocks into reporter rings
+* Morphic: simplified and optimized Node>>parentThatIsA / parentThatIsAnyOf
+* Blocks, Lists, Tables: refactored for optimized parent-by-type detection
+* Blocks: adjusted keyboard typing for command blocks inside reporter rings
+* GUI, Blocks: enable dropping command blocks into all rings by default. Yeah!
+
+### 2019-02-06
+* Blocks, BYOB: refactored custom block input options and drop-down menus
+* Blocks: adjust bottom of STOP block to reflect the menu selection (show / hide bottom notch)
+* Blocks: enable dropping commands into all rings, under constructions 
+
+### 2019-02-05
+* BYOB: radio button symbols for special slot / drop-down menu options
+
+### 2019-02-04
+* BYOB: new experimental feature: special context-aware drop-down menus for custom blocks
+* BYOB: identify multi-line input slots by the pilcrow symbol in the slot editor
+* BYOB: support default values in multi-line input slots inside custom blocks
+* Blocks: enable piano keyboard menu to work with textual values representable as numbers
+* Blocks: enable dial menu to work with textual values representable as numbers
+
+### 2019-02-01
+* BYOB: new experimental feature: special multi-line and monospaced input slot types
+
 ### 2019-01-28
 * Threads, Objects: new "object" reporter in the Sensing category
+* Blocks, Objects, Threads: added "flat line ends" option to "turbo mode" accessor blocks
+* Blocks, Threads: added 'draggable' and 'rotation style' selectors to accessor blocks
 * Greek translation update, thanks, Alexandros!
 * German translation update
 * pushed version to "Beta"
