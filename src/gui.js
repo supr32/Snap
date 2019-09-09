@@ -75,7 +75,7 @@ isRetinaSupported, SliderMorph, Animation, BoxMorph, MediaRecorder*/
 
 // Global stuff ////////////////////////////////////////////////////////
 
-modules.gui = '2019-February-07';
+modules.gui = '2019-August-08';
 
 // Declarations
 
@@ -218,7 +218,7 @@ IDE_Morph.prototype.init = function (isAutoFill) {
     // additional properties:
     this.cloud = new Cloud();
     this.cloudMsg = null;
-    this.source = 'local';
+    this.source = null;
     this.serializer = new SnapSerializer();
 
     this.globalVariables = new VariableFrame();
@@ -372,6 +372,12 @@ IDE_Morph.prototype.openIn = function (world) {
         }
         if (dict.lang) {
             myself.setLanguage(dict.lang, null, true); // don't persist
+        }
+
+        // only force my world to get focus if I'm not in embed mode
+        // to prevent the iFrame from involuntarily scrolling into view
+        if (!myself.isEmbedMode) {
+            world.worldCanvas.focus();
         }
     }
 
@@ -1322,6 +1328,7 @@ IDE_Morph.prototype.createSpriteBar = function () {
     nameField.contrast = 90;
     nameField.setPosition(thumbnail.topRight().add(new Point(10, 3)));
     this.spriteBar.add(nameField);
+    this.spriteBar.nameField = nameField;
     nameField.drawNew();
     nameField.accept = function () {
         var newName = nameField.getValue();
@@ -1469,6 +1476,7 @@ IDE_Morph.prototype.createSpriteEditor = function () {
             null,
             this.sliderColor
         );
+        this.spriteEditor.color = this.groupColor;
         this.spriteEditor.padding = 10;
         this.spriteEditor.growth = 50;
         this.spriteEditor.isDraggable = false;
@@ -2424,15 +2432,18 @@ IDE_Morph.prototype.recordNewSound = function () {
 
 IDE_Morph.prototype.duplicateSprite = function (sprite) {
     var duplicate = sprite.fullCopy();
+    duplicate.isDown = false;
     duplicate.setPosition(this.world().hand.position());
     duplicate.appearIn(this);
     duplicate.keepWithin(this.stage);
+    duplicate.isDown = sprite.isDown;
     this.selectSprite(duplicate);
 };
 
 IDE_Morph.prototype.instantiateSprite = function (sprite) {
     var instance = sprite.fullCopy(true),
         hats = instance.allHatBlocksFor('__clone__init__');
+    instance.isDown = false;
     instance.appearIn(this);
     if (hats.length) {
         instance.initClone(hats);
@@ -2440,6 +2451,7 @@ IDE_Morph.prototype.instantiateSprite = function (sprite) {
         instance.setPosition(this.world().hand.position());
         instance.keepWithin(this.stage);
     }
+    instance.isDown = sprite.isDown;
     this.selectSprite(instance);
 };
 
@@ -2740,7 +2752,16 @@ IDE_Morph.prototype.settingsMenu = function () {
     }
 
     menu = new MenuMorph(this);
-    menu.addItem('Language...', 'languageMenu');
+    menu.addPair(
+        [
+            new SymbolMorph(
+                'globe',
+                MorphicPreferences.menuFontSize
+            ),
+            localize('Language...')
+        ],
+        'languageMenu'
+    );
     menu.addItem(
         'Zoom blocks...',
         'userSetBlocksScale'
@@ -2758,6 +2779,10 @@ IDE_Morph.prototype.settingsMenu = function () {
             new Color(100, 0, 0)
         );
     }
+    menu.addItem(
+        'Microphone resolution...',
+        'microphoneMenu'
+    );
     menu.addLine();
     /*
     addPreference(
@@ -3128,7 +3153,7 @@ IDE_Morph.prototype.settingsMenu = function () {
         StageMorph.prototype.enableInheritance,
         'uncheck to disable\nsprite inheritance features',
         'check for sprite\ninheritance features',
-        false
+        true
     );
     addPreference(
         'Persist linked sublist IDs',
@@ -3253,22 +3278,6 @@ IDE_Morph.prototype.projectMenu = function () {
     }
 
     menu.addLine();
-    menu.addItem(
-        'Import tools',
-        function () {
-            if (location.protocol === 'file:') {
-                myself.importLocalFile();
-                return;
-            }
-            myself.getURL(
-                myself.resourceURL('libraries', 'tools.xml'),
-                function (txt) {
-                    myself.droppedText(txt, 'tools');
-                }
-            );
-        },
-        'load the official library of\npowerful blocks'
-    );
     menu.addItem(
         'Libraries...',
         function() {
@@ -3587,8 +3596,8 @@ IDE_Morph.prototype.aboutSnap = function () {
         module, btn1, btn2, btn3, btn4, licenseBtn, translatorsBtn,
         world = this.world();
 
-    aboutTxt = 'Snap! 5 - Beta -\nBuild Your Own Blocks\n\n'
-        + 'Copyright \u24B8 2018 Jens M\u00F6nig and '
+    aboutTxt = 'Snap! 5.1.0\nBuild Your Own Blocks\n\n'
+        + 'Copyright \u24B8 2019 Jens M\u00F6nig and '
         + 'Brian Harvey\n'
         + 'jens@moenig.org, bh@cs.berkeley.edu\n\n'
 
@@ -3626,11 +3635,15 @@ IDE_Morph.prototype.aboutSnap = function () {
     creditsTxt = localize('Contributors')
         + '\n\nNathan Dinsmore: Saving/Loading, Snap-Logo Design, '
         + '\ncountless bugfixes and optimizations'
-        + '\nKartik Chandra: Paint Editor'
         + '\nMichael Ball: Time/Date UI, Library Import Dialog,'
         + '\ncountless bugfixes and optimizations'
-        + '\nBartosz Leper: Retina Display Support'
         + '\nBernat Romagosa: Countless contributions'
+        + '\nBartosz Leper: Retina Display Support'
+        + '\nZhenlei Jia and Dariusz Dorożalski: IME text editing'
+        + '\nKen Kahn: IME support and countless other contributions'
+        + '\nJosep Ferràndiz: Video Motion Detection'
+        + '\nJoan Guillén: Countless contributions'
+        + '\nKartik Chandra: Paint Editor'
         + '\nCarles Paredes: Initial Vector Paint Editor'
         + '\n"Ava" Yuan Yuan, Dylan Servilla: Graphic Effects'
         + '\nKyle Hotchkiss: Block search design'
@@ -3749,7 +3762,6 @@ IDE_Morph.prototype.editProjectNotes = function () {
     var dialog = new DialogBoxMorph().withKey('projectNotes'),
         frame = new ScrollFrameMorph(),
         text = new TextMorph(this.projectNotes || ''),
-        ok = dialog.ok,
         myself = this,
         size = 250,
         world = this.world();
@@ -3776,9 +3788,14 @@ IDE_Morph.prototype.editProjectNotes = function () {
     frame.addContents(text);
     text.drawNew();
 
-    dialog.ok = function () {
-        myself.projectNotes = text.text;
-        ok.call(this);
+    dialog.getInput = function () {
+        return text.text;
+    };
+
+    dialog.target = myself;
+
+    dialog.action = function (note) {
+        myself.projectNotes = note;
     };
 
     dialog.justDropped = function () {
@@ -3799,7 +3816,7 @@ IDE_Morph.prototype.editProjectNotes = function () {
 };
 
 IDE_Morph.prototype.newProject = function () {
-    this.source = this.cloud.username ? 'cloud' : 'local';
+    this.source = this.cloud.username ? 'cloud' : null;
     if (this.stage) {
         this.stage.destroy();
     }
@@ -3843,55 +3860,22 @@ IDE_Morph.prototype.save = function () {
         return;
     }
 
-    if (this.source === 'examples') {
-        this.source = 'local'; // cannot save to examples
+    if (this.source === 'examples' || this.source === 'local') {
+        // cannot save to examples, deprecated localStorage
+        this.source = null;
     }
     if (this.projectName) {
-        if (this.source === 'local') { // as well as 'examples'
-            this.saveProject(this.projectName);
-        } else { // 'cloud'
+        if (this.source === 'disk') {
+            this.exportProject(this.projectName);
+        } else if (this.source === 'cloud') {
             this.saveProjectToCloud(this.projectName);
+        } else {
+            this.saveProjectsBrowser();
         }
     } else {
         this.saveProjectsBrowser();
     }
 };
-
-IDE_Morph.prototype.saveProject = function (name) {
-    var myself = this;
-    this.nextSteps([
-        function () {
-            myself.showMessage('Saving...');
-        },
-        function () {
-            myself.rawSaveProject(name);
-        }
-    ]);
-};
-
-// Serialize a project and save to the browser.
-IDE_Morph.prototype.rawSaveProject = function (name) {
-    var str;
-    if (name) {
-        this.setProjectName(name);
-        if (Process.prototype.isCatchingErrors) {
-            try {
-                localStorage['-snap-project-' + name]
-                    = str = this.serializer.serialize(this.stage);
-                this.setURL('#open:' + str);
-                this.showMessage('Saved!', 1);
-            } catch (err) {
-                this.showMessage('Save failed: ' + err);
-            }
-        } else {
-            localStorage['-snap-project-' + name]
-                = str = this.serializer.serialize(this.stage);
-            this.setURL('#open:' + str);
-            this.showMessage('Saved!', 1);
-        }
-    }
-};
-
 
 IDE_Morph.prototype.exportProject = function (name, plain) {
     // Export project XML, saving a file to disk
@@ -5126,9 +5110,37 @@ IDE_Morph.prototype.saveProjectsBrowser = function () {
     }
 
     if (this.source === 'examples') {
-        this.source = 'local'; // cannot save to examples
+        this.source = null; // cannot save to examples
     }
     new ProjectDialogMorph(this, 'save').popUp();
+};
+
+// IDE_Morph microphone settings
+
+IDE_Morph.prototype.microphoneMenu = function () {
+    var menu = new MenuMorph(this),
+        world = this.world(),
+        pos = this.controlBar.settingsButton.bottomLeft(),
+        resolutions = ['low', 'normal', 'high', 'max'],
+        microphone = this.stage.microphone;
+
+    if (microphone.isReady) {
+        menu.addItem(
+            '\u2611 ' + localize('Microphone'),
+            function () {microphone.stop(); }
+        );
+        menu.addLine();
+    }
+    resolutions.forEach(function (res, i) {
+        menu.addItem(
+            (microphone.resolution === i + 1 ? '\u2713 ' : '    ') +
+                localize(res),
+            function () {
+                microphone.setResolution(i + 1);
+            }
+        );
+    });
+    menu.popup(world, pos);
 };
 
 // IDE_Morph localization
@@ -5283,7 +5295,7 @@ IDE_Morph.prototype.userSetBlocksScale = function () {
         false, // read only?
         true, // numeric
         1, // slider min
-        12, // slider max
+        5, // slider max
         action // slider action
     );
 };
@@ -5356,6 +5368,7 @@ IDE_Morph.prototype.setStageExtent = function (aPoint) {
     this.stageRatio = 1;
     this.isSmallStage = false;
     this.controlBar.stageSizeButton.refresh();
+    this.stage.stopVideo();
     this.setExtent(world.extent());
     if (this.isAnimating) {
         zoom();
@@ -5990,7 +6003,7 @@ ProjectDialogMorph.prototype.init = function (ide, task) {
     // additional properties:
     this.ide = ide;
     this.task = task || 'open'; // String describing what do do (open, save)
-    this.source = ide.source || 'local'; // or 'cloud' or 'examples'
+    this.source = ide.source;
     this.projectList = []; // [{name: , thumb: , notes:}]
 
     this.handle = null;
@@ -6005,6 +6018,8 @@ ProjectDialogMorph.prototype.init = function (ide, task) {
     this.deleteButton = null;
     this.shareButton = null;
     this.unshareButton = null;
+    this.publishButton = null;
+    this.unpublishButton = null;
     this.recoverButton = null;
 
     // initialize inherited properties:
@@ -6021,10 +6036,19 @@ ProjectDialogMorph.prototype.init = function (ide, task) {
     this.key = 'project' + task;
 
     // build contents
-    this.buildContents();
-    this.onNextStep = function () { // yield to show "updating" message
-        myself.setSource(myself.source);
-    };
+    if (task === 'open' && this.source === 'disk') {
+        // give the user a chance to switch to another source
+        this.source = null;
+        this.buildContents();
+        this.projectList = [];
+        this.listField.hide();
+        this.source = 'disk';
+    } else {
+        this.buildContents();
+        this.onNextStep = function () { // yield to show "updating" message
+            myself.setSource(myself.source);
+        };
+    }
 };
 
 ProjectDialogMorph.prototype.buildContents = function () {
@@ -6053,11 +6077,17 @@ ProjectDialogMorph.prototype.buildContents = function () {
     }
 
     this.addSourceButton('cloud', localize('Cloud'), 'cloud');
-    this.addSourceButton('local', localize('Browser'), 'storage');
+
     if (this.task === 'open') {
         this.buildFilterField();
         this.addSourceButton('examples', localize('Examples'), 'poster');
+        if (this.hasLocalProjects() || this.ide.world().currentKey === 16) {
+            // shift- clicked
+            this.addSourceButton('local', localize('Browser'), 'globe');
+        }
     }
+    this.addSourceButton('disk', localize('Computer'), 'storage');
+
     this.srcBar.fixLayout();
     this.body.add(this.srcBar);
 
@@ -6142,29 +6172,31 @@ ProjectDialogMorph.prototype.buildContents = function () {
     if (this.task === 'open') {
         this.addButton('openProject', 'Open');
         this.action = 'openProject';
-        this.recoverButton = this.addButton('recoveryDialog', 'Recover');
+        this.recoverButton = this.addButton('recoveryDialog', 'Recover', true);
         this.recoverButton.hide();
     } else { // 'save'
         this.addButton('saveProject', 'Save');
         this.action = 'saveProject';
     }
-    this.shareButton = this.addButton('shareProject', 'Share');
-    this.unshareButton = this.addButton('unshareProject', 'Unshare');
+    this.shareButton = this.addButton('shareProject', 'Share', true);
+    this.unshareButton = this.addButton('unshareProject', 'Unshare', true);
     this.shareButton.hide();
     this.unshareButton.hide();
-    /*
-    this.publishButton = this.addButton('publishProject', 'Publish');
-    this.unpublishButton = this.addButton('unpublishProject', 'Unpublish');
+    this.publishButton = this.addButton('publishProject', 'Publish', true);
+    this.unpublishButton = this.addButton(
+        'unpublishProject',
+        'Unpublish',
+        true
+    );
     this.publishButton.hide();
     this.unpublishButton.hide();
-    */
     this.deleteButton = this.addButton('deleteProject', 'Delete');
     this.addButton('cancel', 'Cancel');
 
     if (notification) {
-        this.setExtent(new Point(555, 335).add(notification.extent()));
+        this.setExtent(new Point(500, 360).add(notification.extent()));
     } else {
-        this.setExtent(new Point(555, 335));
+        this.setExtent(new Point(500, 360));
     }
     this.fixLayout();
 
@@ -6177,11 +6209,72 @@ ProjectDialogMorph.prototype.popUp = function (wrrld) {
         this.handle = new HandleMorph(
             this,
             350,
-            300,
+            330,
             this.corner,
             this.corner
         );
     }
+};
+
+// ProjectDialogMorph action buttons
+
+ProjectDialogMorph.prototype.createButtons = function () {
+    if (this.buttons) {
+        this.buttons.destroy();
+    }
+    this.buttons = new AlignmentMorph('column', this.padding / 3);
+    this.buttons.bottomRow = new AlignmentMorph('row', this.padding);
+    this.buttons.topRow = new AlignmentMorph('row', this.padding);
+    this.buttons.add(this.buttons.topRow);
+    this.buttons.add(this.buttons.bottomRow);
+    this.add(this.buttons);
+
+    this.buttons.topRow.hide = function () {
+        this.isVisible = false;
+        this.changed();
+    };
+
+    this.buttons.topRow.show = function () {
+        this.isVisible = true;
+        this.changed();
+    };
+
+    this.buttons.fixLayout = function () {
+        if (this.topRow.children.some(function (any) {
+            return any.isVisible;
+        })) {
+            this.topRow.show();
+            this.topRow.fixLayout();
+        } else {
+            this.topRow.hide();
+        }
+        this.bottomRow.fixLayout();
+        AlignmentMorph.prototype.fixLayout.call(this);
+    };
+};
+
+ProjectDialogMorph.prototype.addButton = function (action, label, topRow) {
+    var button = new PushButtonMorph(
+        this,
+        action || 'ok',
+        '  ' + localize((label || 'OK')) + '  '
+    );
+    button.fontSize = this.buttonFontSize;
+    button.corner = this.buttonCorner;
+    button.edge = this.buttonEdge;
+    button.outline = this.buttonOutline;
+    button.outlineColor = this.buttonOutlineColor;
+    button.outlineGradient = this.buttonOutlineGradient;
+    button.padding = this.buttonPadding;
+    button.contrast = this.buttonContrast;
+    button.drawNew();
+    button.fixLayout();
+    if (topRow) {
+        this.buttons.topRow.add(button);
+    } else {
+        this.buttons.bottomRow.add(button);
+    }
+    return button;
 };
 
 // ProjectDialogMorph source buttons
@@ -6331,17 +6424,18 @@ ProjectDialogMorph.prototype.setSource = function (source) {
     var myself = this,
         msg;
 
-    this.source = source; //this.task === 'save' ? 'local' : source;
+    this.source = source;
     this.srcBar.children.forEach(function (button) {
         button.refresh();
     });
+
     switch (this.source) {
     case 'cloud':
         msg = myself.ide.showMessage('Updating\nproject list...');
         this.projectList = [];
         myself.ide.cloud.getProjectList(
             function (response) {
-                // Don't show cloud projects if user has since switch panes.
+                // Don't show cloud projects if user has since switched panes.
                 if (myself.source === 'cloud') {
                     myself.installCloudProjectList(response.projects);
                 }
@@ -6357,7 +6451,17 @@ ProjectDialogMorph.prototype.setSource = function (source) {
         this.projectList = this.getExamplesProjectList();
         break;
     case 'local':
+        // deprecated, only for reading
         this.projectList = this.getLocalProjectList();
+        break;
+    case 'disk':
+        if (this.task === 'save') {
+            this.projectList = [];
+        } else {
+            this.destroy();
+            this.ide.importLocalFile();
+            return;
+        }
         break;
     }
 
@@ -6371,6 +6475,9 @@ ProjectDialogMorph.prototype.setSource = function (source) {
         null,
         function () {myself.ok(); }
     );
+    if (this.source === 'disk') {
+        this.listField.hide();
+    }
 
     this.fixListFieldItemColors();
     this.listField.fixLayout = nop;
@@ -6439,10 +6546,8 @@ ProjectDialogMorph.prototype.setSource = function (source) {
         this.recoverButton.hide();
     }
 
-    /*
     this.publishButton.hide();
     this.unpublishButton.hide();
-    */
     if (this.source === 'local') {
         this.deleteButton.show();
     } else { // examples
@@ -6453,6 +6558,15 @@ ProjectDialogMorph.prototype.setSource = function (source) {
     if (this.task === 'open') {
         this.clearDetails();
     }
+};
+
+ProjectDialogMorph.prototype.hasLocalProjects = function () {
+    // check and report whether old projects still exist in the
+    // browser's local storage, which as of v5 has been deprecated,
+    // so the user can recover and move them elsewhere
+    return Object.keys(localStorage).some(function (any) {
+        return any.indexOf('-snap-project-') === 0;
+    });
 };
 
 ProjectDialogMorph.prototype.getLocalProjectList = function () {
@@ -6551,7 +6665,6 @@ ProjectDialogMorph.prototype.installCloudProjectList = function (pl) {
         if (item.ispublic) {
             myself.shareButton.hide();
             myself.unshareButton.show();
-            /*
             if (item.ispublished) {
                 myself.publishButton.hide();
                 myself.unpublishButton.show();
@@ -6559,14 +6672,11 @@ ProjectDialogMorph.prototype.installCloudProjectList = function (pl) {
                 myself.publishButton.show();
                 myself.unpublishButton.hide();
             }
-            */
         } else {
             myself.unshareButton.hide();
             myself.shareButton.show();
-            /*
             myself.publishButton.hide();
             myself.unpublishButton.hide();
-            */
         }
         myself.buttons.fixLayout();
         myself.fixLayout();
@@ -6615,6 +6725,7 @@ ProjectDialogMorph.prototype.openProject = function () {
         this.ide.openProjectString(src);
         this.destroy();
     } else { // 'local'
+        this.ide.source = null;
         this.ide.openProject(proj.name);
         this.destroy();
     }
@@ -6683,29 +6794,10 @@ ProjectDialogMorph.prototype.saveProject = function () {
                 this.ide.setProjectName(name);
                 myself.saveCloudProject();
             }
-        } else { // 'local'
-            if (detect(
-                    this.projectList,
-                    function (item) {return item.name === name; }
-                )) {
-                this.ide.confirm(
-                    localize(
-                        'Are you sure you want to replace'
-                    ) + '\n"' + name + '"?',
-                    'Replace Project',
-                    function () {
-                        myself.ide.setProjectName(name);
-                        myself.ide.source = 'local';
-                        myself.ide.saveProject(name);
-                        myself.destroy();
-                    }
-                );
-            } else {
-                this.ide.setProjectName(name);
-                myself.ide.source = 'local';
-                this.ide.saveProject(name);
-                this.destroy();
-            }
+        } else if (this.source === 'disk') {
+            this.ide.exportProject(name, false);
+            this.ide.source = 'disk';
+            this.destroy();
         }
     }
 };
@@ -6785,10 +6877,8 @@ ProjectDialogMorph.prototype.shareProject = function () {
                         proj.ispublic = true;
                         myself.unshareButton.show();
                         myself.shareButton.hide();
-                        /*
                         myself.publishButton.show();
                         myself.unpublishButton.hide();
-                        */
                         entry.label.isBold = true;
                         entry.label.drawNew();
                         entry.label.changed();
@@ -6834,10 +6924,8 @@ ProjectDialogMorph.prototype.unshareProject = function () {
                         proj.ispublic = false;
                         myself.shareButton.show();
                         myself.unshareButton.hide();
-                        /*
                         myself.publishButton.hide();
                         myself.unpublishButton.hide();
-                        */
                         entry.label.isBold = false;
                         entry.label.isItalic = false;
                         entry.label.drawNew();
@@ -7122,7 +7210,7 @@ ProjectRecoveryDialogMorph.prototype.buildContents = function () {
 
     this.body.add(this.notesField);
 
-    this.addButton('recoverProject', 'Recover');
+    this.addButton('recoverProject', 'Recover', true);
     this.addButton('cancel', 'Cancel');
 
     this.setExtent(new Point(360, 300));
